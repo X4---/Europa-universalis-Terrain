@@ -74,10 +74,10 @@
 			float MAP_POW2_Y = 1;
 			float FOW_POW2_X = 1;
 			float FOW_POW2_Y = 1;
-			float NUM_TILES = 4;
-			float TERRAIN_TILE_FREQ = 128;
-			float TEXELS_PER_TILE = 2048 / 4;
-			float ATLAS_TEXEL_POW2_EXPONENT = 11;
+			//float NUM_TILES = 4;
+			//float TERRAIN_TILE_FREQ = 128;
+			//float TEXELS_PER_TILE = 2048 / 4;
+			//float ATLAS_TEXEL_POW2_EXPONENT = 11;
 			float _vBorderLookup_HeightScale_UseMultisample_SeasonLerp;
 			float4 vFoWOpacity_Time;
 
@@ -94,6 +94,22 @@
 			const static float SNOW_NORMAL_START = 0.7f;
 			const static float3 SNOW_COLOR = float3(0.7f, 0.7f, 0.7f);
 			const static float3 SNOW_WATER_COLOR = float3(0.5f, 0.7f, 0.7f);
+
+			const static  float3 GREYIFY = float3(0.212671, 0.715160, 0.072169);
+			const static  float NUM_TILES = 4.0f;
+			const static  float TEXELS_PER_TILE = 512.0f;
+			const static  float ATLAS_TEXEL_POW2_EXPONENT = 11.0f;
+			const static  float TERRAIN_WATER_CLIP_HEIGHT = 3.0f;
+			const static  float TERRAIN_UNDERWATER_CLIP_HEIGHT = 3.0f;
+
+			//const static float TERRAIN_WATER_CLIP_HEIGHT = 3.0f;
+
+			static const float 	TERRAIN_TILE_FREQ = 128.0f; // constants.fxh
+
+			const static float WATER_HEIGHT = 19.0f;
+			const static float WATER_HEIGHT_RECP = 1.0f / WATER_HEIGHT;
+			const static float WATER_HEIGHT_RECP_SQUARED = WATER_HEIGHT_RECP * WATER_HEIGHT_RECP;
+			const static float vTimeScale = 0.5f / 300.0f;
 
 			float3 CalculateLighting(float3 vColor, float3 vNormal, float3 vLightDirection, float vAmbient, float3 vLightDiffuse, float vLightIntensity)
 			{
@@ -282,7 +298,7 @@
 				o.uv2 = o.uv;
 
 				o.uv.y = 1 - o.uv.y;
-				o.prepos = v.vertex;
+				o.prepos = mul(unity_ObjectToWorld, v.vertex);
 
 				return o;
 			}
@@ -290,6 +306,9 @@
 			float4 frag (v2f Input) : SV_Target
 			{
 				//float2 vOffsets = float2(-0.5 / MAP_SIZE_X, -0. / MAP_SIZE_Y);
+
+				clip( Input.prepos.y + TERRAIN_WATER_CLIP_HEIGHT - WATER_HEIGHT);
+
 
 				float fTI;
 				float4 vFoWColor, vTIColor;
@@ -304,26 +323,13 @@
 
 				float4 IDsample = tex2D(_TerrainIDMap, Input.uv);
 
-				if (IDsample.z* 255 > _A)
-				{
-					float a = abs(IDsample.x - IDsample.y) * 255;
-					float b = abs(IDsample.y - IDsample.z) * 255;
-					float c = abs(IDsample.x - IDsample.z) * 255;
-
-					//return float4(a, b, c, 1) /4/4;
-					//return float4(0, 0, 0, 0);
-				}
-				else
-				{
-					float a = abs(IDsample.x - IDsample.y) * 255;
-					float b = abs(IDsample.y - IDsample.z) * 255;
-					float c = abs(IDsample.x - IDsample.z) * 255;
-
-					//return float4(a, b, c, 1);
-					//return float4(0, 0, 0, 0);
-				}
+				//return IDsample;
 
 				calculate_index(IDsample, IndexU, IndexV, vAllSame);
+
+				float debuga = IndexV.r;
+
+				//return float4(debuga, debuga, debuga, debuga);
 
 				float2 vTileRepeat = Input.uv2 * TERRAIN_TILE_FREQ;
 				//TERRAIN_TILE_FREQ = 128.0f
@@ -342,13 +348,43 @@
 				float4 vTerrainDiffuseSample = tex2Dlod(_TerrainDiffuse, vTerrainSamplePosition);
 				float3 vTerrainNormalSample = tex2Dlod(_TerrainNormal, vTerrainSamplePosition).rbg - 0.5f;
 
+				//float4 vTerrainDiffuseSample = tex2D(_TerrainDiffuse, vTerrainSamplePosition);
+				//float3 vTerrainNormalSample = tex2D(_TerrainNormal, vTerrainSamplePosition).rbg - 0.5f;
 
-				float4 TerrainSampleX = sample_terrain(IndexU.x, IndexV.x, vTileRepeat, vMipTexels, lod);
-				float4 TerrainSampleY = sample_terrain(IndexU.y, IndexV.y, vTileRepeat, vMipTexels, lod);
-				float4 TerrainSampleZ = sample_terrain(IndexU.z, IndexV.z, vTileRepeat, vMipTexels, lod);
-				float4 ColorRD = tex2Dlod(_TerrainDiffuse, TerrainSampleX);
-				float4 ColorLU = tex2Dlod(_TerrainDiffuse, TerrainSampleY);
-				float4 ColorRU = tex2Dlod(_TerrainDiffuse, TerrainSampleZ);
+				if (vAllSame < 1.0f)
+				{
+					float4 TerrainSampleX = sample_terrain(IndexU.x, IndexV.x, vTileRepeat, vMipTexels, lod);
+					float4 TerrainSampleY = sample_terrain(IndexU.y, IndexV.y, vTileRepeat, vMipTexels, lod);
+					float4 TerrainSampleZ = sample_terrain(IndexU.z, IndexV.z, vTileRepeat, vMipTexels, lod);
+					float4 ColorRD = tex2Dlod(_TerrainDiffuse, TerrainSampleX);
+					float4 ColorLU = tex2Dlod(_TerrainDiffuse, TerrainSampleY);
+					float4 ColorRU = tex2Dlod(_TerrainDiffuse, TerrainSampleZ);
+
+					float2 vFracVector = float2(Input.uv.x * MAP_SIZE_X - 0.5f, Input.uv.y * MAP_SIZE_Y - 0.5f);
+					float2 vFrac = frac(vFracVector);
+
+					const float vAlphaFactor = 10.0f;
+					float4 vTestFrac = float4(vFrac.x, 1.0f - vFrac.x, vFrac.x, 1.0f - vFrac.x);
+					float4 vTestRemainder = float4(
+						1.0f + ColorLU.a * vAlphaFactor,
+						1.0f + ColorRU.a * vAlphaFactor,
+						1.0f + vTerrainDiffuseSample.a * vAlphaFactor,
+						1.0f + ColorRD.a * vAlphaFactor);
+					float4 vTest = vTestFrac * vTestRemainder;
+					float2 yWeights = float2((vTest.x + vTest.y) * vFrac.y, (vTest.z + vTest.w) * (1.0f - vFrac.y));
+					float3 vBlendFactors = float3(vTest.x / (vTest.x + vTest.y),
+						vTest.z / (vTest.z + vTest.w),
+						yWeights.x / (yWeights.x + yWeights.y));
+
+					vTerrainDiffuseSample = lerp(
+						lerp(ColorRU, ColorLU, vBlendFactors.x),
+						lerp(ColorRD, vTerrainDiffuseSample, vBlendFactors.y),
+						vBlendFactors.z);
+
+					
+				}
+
+				//return vTerrainDiffuseSample;
 
 				//两张季节颜色贴图
 				float4 TerrainColor1 = tex2D(_TerrainColorTint, Input.uv2);

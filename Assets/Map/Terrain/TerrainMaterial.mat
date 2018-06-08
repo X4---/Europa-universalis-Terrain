@@ -18,6 +18,30 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - FoWDiffuse:
+        m_Texture: {fileID: 2800000, guid: effde089d97a2b044b9baecc0836edae, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - FoWTexture:
+        m_Texture: {fileID: 2800000, guid: dc80ad626e48a504fa44df7eb3471fc6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - OccupationMask:
+        m_Texture: {fileID: 2800000, guid: c1f96f79e13a3d749b4ce1354a73d040, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - ProvinceSecondaryColorMap:
+        m_Texture: {fileID: 2800000, guid: 0a1b76840d3bb51488c1994ad0bf8494, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - ProvinceSecondaryColorMapPoint:
+        m_Texture: {fileID: 2800000, guid: 0a1b76840d3bb51488c1994ad0bf8494, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - TITexture:
+        m_Texture: {fileID: 2800000, guid: d882d523477380442bfdcace8a13db20, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 2800000, guid: 1c73fb983024fe7429b32a6e0758987c, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -44,6 +68,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HeightNormal:
+        m_Texture: {fileID: 2800000, guid: 8a28ca92f324fb44993899de84dd6d79, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -98,12 +126,28 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TerrainColorTint:
+        m_Texture: {fileID: 2800000, guid: 3af4a142e284bbe439afc33af0e7bcd9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TerrainColorTintSecond:
+        m_Texture: {fileID: 2800000, guid: a7e9037d2796ac04ea5c940d1e32105d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TerrainDiffuse:
-        m_Texture: {fileID: 2800000, guid: 8dad7a996f7d3a34db1bc9f5965d6f02, type: 3}
+        m_Texture: {fileID: 2800000, guid: 26c9e076caaec424482f9f624f3a2240, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TerrainIDMap:
+        m_Texture: {fileID: 2800000, guid: a7b85e04f9d8c3e4f9d595ec746cb379, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TerrainMap:
         m_Texture: {fileID: 2800000, guid: e4a09927c055c854f968848b8cbc1e22, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TerrainNormal:
+        m_Texture: {fileID: 2800000, guid: d2efd3bb3eb6f874d9f4373dc26698ab, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TillMap:
@@ -111,7 +155,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _A: 1
+    - _A: 114.5
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -129,7 +173,9 @@ Material:
     - _TILEDNUMEBR: 4
     - _UVSec: 0
     - _ZWrite: 1
+    - _vBorderLookup_HeightScale_UseMultisample_SeasonLerp: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _UV: {r: 0.922, g: 0, b: 1, a: 1}
+    - vFoWOpacity_Time: {r: 1, g: 1, b: 1, a: 1}

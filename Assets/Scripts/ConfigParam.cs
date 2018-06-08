@@ -5,7 +5,7 @@ using UnityEngine;
 public static class ConfigParam{
 
     //每一个BLOCK 修正
-    public static int UVModifyer = 2;
+    public static int UVModifyer = 1;
     //一个BLOCK 世界坐标下的大小
     public static int BLOCKWIDTH = 10;
     //一个BLOCK 世界坐标下的高度

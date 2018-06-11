@@ -139,7 +139,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TerrainIDMap:
-        m_Texture: {fileID: 2800000, guid: a7b85e04f9d8c3e4f9d595ec746cb379, type: 3}
+        m_Texture: {fileID: 2800000, guid: bd1429878e929e74284036a01513c0b5, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TerrainMap:

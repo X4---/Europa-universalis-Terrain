@@ -34,7 +34,7 @@ public class TerrainCell : MonoBehaviour {
         kMesh.SetColors(colors);
         kMesh.SetUVs(0,uvs);
         kMesh.SetTriangles(triangles, 0);
-        kMesh.RecalculateNormals();
+        //kMesh.RecalculateNormals();
 
         var lodgroup = GetComponent<LODGroup>();
         if (lodgroup != null)

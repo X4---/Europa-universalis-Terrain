@@ -135,7 +135,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TerrainDiffuse:
-        m_Texture: {fileID: 2800000, guid: 26c9e076caaec424482f9f624f3a2240, type: 3}
+        m_Texture: {fileID: 2800000, guid: 8f5c1527ecd34fa448ba0d249b374b9c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TerrainIDMap:
@@ -147,7 +147,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TerrainNormal:
-        m_Texture: {fileID: 2800000, guid: d2efd3bb3eb6f874d9f4373dc26698ab, type: 3}
+        m_Texture: {fileID: 2800000, guid: 3ab5e69b3ed8829449f0e2132750a2ad, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TillMap:
@@ -155,7 +155,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _A: 114.5
+    - _A: 8
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1

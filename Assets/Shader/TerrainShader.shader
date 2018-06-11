@@ -68,12 +68,12 @@
 
 			float _A;
 
-			float MAP_SIZE_X = 5632;
-			float MAP_SIZE_Y = 2048;
-			float MAP_POW2_X = 1;
-			float MAP_POW2_Y = 1;
-			float FOW_POW2_X = 1;
-			float FOW_POW2_Y = 1;
+			const static float MAP_SIZE_X = 5632;
+			const static float MAP_SIZE_Y = 2048;
+			const static float MAP_POW2_X = 1;
+			const static float MAP_POW2_Y = 1;
+			const static float FOW_POW2_X = 1;
+			const static float FOW_POW2_Y = 1;
 			//float NUM_TILES = 4;
 			//float TERRAIN_TILE_FREQ = 128;
 			//float TEXELS_PER_TILE = 2048 / 4;
@@ -323,17 +323,32 @@
 
 				float4 IDsample = tex2D(_TerrainIDMap, Input.uv);
 
+				float deltax = abs(IDsample.x - IDsample.y);
+				float deltay = abs(IDsample.y - IDsample.z);
+				float deltaz = abs(IDsample.z - IDsample.w);
+				float deltaw = abs(IDsample.w - IDsample.x);
+
+				float t = deltax + deltay + deltaz + deltaw;
+
 				//return IDsample;
 
 				calculate_index(IDsample, IndexU, IndexV, vAllSame);
 
 				float debuga = IndexV.r;
 
+				//return vAllSame;
+
 				//return float4(debuga, debuga, debuga, debuga);
 
 				float2 vTileRepeat = Input.uv2 * TERRAIN_TILE_FREQ;
+
+				//float MAPSCALE = MAP_SIZE_X /MAP_SIZE_Y;
+				//return MAPSCALE;
+
 				//TERRAIN_TILE_FREQ = 128.0f
-				vTileRepeat.x *= MAP_SIZE_X / MAP_SIZE_Y;
+				vTileRepeat.x *= (float)MAP_SIZE_X / (float)MAP_SIZE_Y; //由于使用了 非const float值, 所以 在代码中， 这段数值没有生效，导致的Bug
+				//****************---------------**************FUCK BUG ***********************/
+				//vTileRepeat.x *= 2.75; 
 
 				float lod = clamp(trunc(mipmapLevel(vTileRepeat) - 0.5f), 0.0f, 6.0f);
 				float vMipTexels = pow(2.0f, ATLAS_TEXEL_POW2_EXPONENT - lod);
@@ -341,16 +356,78 @@
 				//高度图法线
 				float3 vHeightNormalSample = normalize(tex2D(_HeightNormal, Input.uv2).rbg - 0.5f);
 
+				//IndexU.x 范围 (0-3)
+				//IndexU.y 范围 (0-3)
+				//IndexU.z 范围 (0-3)
+				//IndexU.w 范围 (0-3)
+
+				//IndexV.x 范围 (0-4, 8)
+				//IndexV.y 范围 (0-4, 8)
+				//IndexV.z 范围 (0-4, 8)
+				//IndexV.w 范围 (0-4, 8)
+				//
+
 				//Terrain Sample Position
 				float4 vTerrainSamplePosition = sample_terrain(IndexU.w, IndexV.w, vTileRepeat, vMipTexels, lod);
+
+				//采样地形
+
+
+				// vTileRepeat = Input.uv2 * TERRAIN_TILE_FREQ ( 128.0f )
+
+				// vTileRepeat = (Input.uv2 = A* 1/128.0f + b( 0 - 1/128.0f)  ) *  TERRAIN_TILE_FREQ
+				// 垂直方向上 拥有 128个 Terrain块
+
+				// vTileRepeat.x *= MAP_SIZE_X / MAP_SIZE_Y  (2.75f)
+
+				//vTileRepeat = frac(vTileRepeat);
+				//float vTexelsPerTile = vMipTexels / NUM_TILES;
+
+				//lod =0 , vMipTexels = 2048;
+				//vTexelsPerTile = 2048 / 4 = 512 ; // 每个TILES 拥有的像素值
+
+
+				//vTileRepeat *= (vTexelsPerTile - 1.0f) / vTexelsPerTile;
+
+				// UV / NUM_TILES  + vTileRepeat / NUM_TILES + 0.5f/ vMipTexels
+				// UV / NUM_TILES (Tiles 块的 UV ， 0， 0.25， 0.5， 0.75) 
+
+				//return float4((float2(IndexU, IndexV) + vTileRepeat) / NUM_TILES + 0.5f / vMipTexels, 0.0f, lod);
+				//
+
+				//float2 DebugUV = float2(IndexU.w, IndexV.w) / NUM_TILES;
+
+				//float2 dd = float2(1 / (TERRAIN_TILE_FREQ * MAP_SIZE_X / MAP_SIZE_Y), 1 / TERRAIN_TILE_FREQ);
+				//float2 testa = trunc(Input.uv2.xy / dd);
+				//testa = Input.uv2.xy - testa * dd;
+
+
+				//float2 DebugRepeat = Input.uv2.xy * TERRAIN_TILE_FREQ;
+					//DebugRepeat.x *= MAP_SIZE_X / MAP_SIZE_Y;
+					//DebugRepeat = frac(DebugRepeat) / NUM_TILES;
+
+				//float2 ddda = Input.uv2.xy;
+				//ddda.x *= 2.75;
+				//float2 dddb = frac(ddda * TERRAIN_TILE_FREQ);
+				//ddda.x *= (float)MAP_SIZE_X / MAP_SIZE_Y;
+				//float4 vDebugSampe = tex2D(_TerrainDiffuse, dddb);
 
 				//地形 Diffuse
 				float4 vTerrainDiffuseSample = tex2Dlod(_TerrainDiffuse, vTerrainSamplePosition);
 				float3 vTerrainNormalSample = tex2Dlod(_TerrainNormal, vTerrainSamplePosition).rbg - 0.5f;
 
+				//return vTerrainDiffuseSample;
+
+				//return vTerrainDiffuseSample;
+				//return vTerrainSamplePosition;
+				//return IndexV.x - _A;
+				//return IndexU.w /4;
+				//return vTerrainSamplePosition.r;
+				//return vTerrainDiffuseSample.a;
 				//float4 vTerrainDiffuseSample = tex2D(_TerrainDiffuse, vTerrainSamplePosition);
 				//float3 vTerrainNormalSample = tex2D(_TerrainNormal, vTerrainSamplePosition).rbg - 0.5f;
 
+				//if(false)
 				if (vAllSame < 1.0f)
 				{
 					float4 TerrainSampleX = sample_terrain(IndexU.x, IndexV.x, vTileRepeat, vMipTexels, lod);
@@ -359,6 +436,7 @@
 					float4 ColorRD = tex2Dlod(_TerrainDiffuse, TerrainSampleX);
 					float4 ColorLU = tex2Dlod(_TerrainDiffuse, TerrainSampleY);
 					float4 ColorRU = tex2Dlod(_TerrainDiffuse, TerrainSampleZ);
+
 
 					float2 vFracVector = float2(Input.uv.x * MAP_SIZE_X - 0.5f, Input.uv.y * MAP_SIZE_Y - 0.5f);
 					float2 vFrac = frac(vFracVector);
@@ -376,10 +454,7 @@
 						vTest.z / (vTest.z + vTest.w),
 						yWeights.x / (yWeights.x + yWeights.y));
 
-					vTerrainDiffuseSample = lerp(
-						lerp(ColorRU, ColorLU, vBlendFactors.x),
-						lerp(ColorRD, vTerrainDiffuseSample, vBlendFactors.y),
-						vBlendFactors.z);
+					vTerrainDiffuseSample = lerp(lerp(ColorRU, ColorLU, vBlendFactors.x),lerp(ColorRD, vTerrainDiffuseSample, vBlendFactors.y),vBlendFactors.z);
 
 					
 				}
@@ -410,7 +485,7 @@
 				vOut = float4(CalculateMapLighting(vTerrainDiffuseSample.rgb, vHeightNormalSample), 1.0);
 				float3 result = vTerrainDiffuseSample.rgb;
 			
-				return vTerrainDiffuseSample;
+				return float4(result,1);
 			}
 			ENDCG
 		}

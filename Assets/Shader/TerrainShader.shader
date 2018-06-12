@@ -81,13 +81,13 @@
 			float _vBorderLookup_HeightScale_UseMultisample_SeasonLerp;
 			float4 vFoWOpacity_Time;
 
-			float4 vLightDir = (0, 1, 0, 0);
-			float4 AMBIENT = (0.5, 0.5, 0.5, 1);
-			float4 LIGHT_DIFFUSE = (1, 1, 1, 1);
-			float LIGHT_INTENSITY = 1;
-			float4 MAP_AMBIENT = 1;
-			float4 MAP_LIGHT_DIFFUSE = (1, 1, 1, 1);
-			float4 MAP_LIGHT_INTENSITY = (1, 1, 1, 1);
+			static float4 vLightDir = (0, -1, 0, 0);
+			static float4 AMBIENT = (0.5, 0.5, 0.5, 1);
+			static float4 LIGHT_DIFFUSE = (1, 1, 1, 1);
+			static float LIGHT_INTENSITY = 1;
+			static float4 MAP_AMBIENT = 1;
+			static float4 MAP_LIGHT_DIFFUSE = (1, 1, 1, 1);
+			static float4 MAP_LIGHT_INTENSITY = (1, 1, 1, 1);
 
 			const static float SNOW_START_HEIGHT = 18.0f;
 			const static float SNOW_RIDGE_START_HEIGHT = 22.0f;
@@ -173,6 +173,7 @@
 
 			float3 ApplySnow(float3 vColor, float3 vPos, inout float3 vNormal, float4 vFoWColor, in sampler2D FoWDiffuse, float3 vSnowColor)
 			{
+				//ApplySnow(vTerrainDiffuseSample.rgb, Input.prepos, vHeightNormalSample, vFoWColor, FoWDiffuse);
 				float vSnowFade = saturate(vPos.y - SNOW_START_HEIGHT);
 				float vNormalFade = saturate(saturate(vNormal.y - SNOW_NORMAL_START) * 10.0f);
 
@@ -180,6 +181,7 @@
 				float vSnowTexture = tex2D(FoWDiffuse, (vPos.xz + 0.5f) / 10.0f).r;
 
 				float vIsSnow = GetSnow(vFoWColor);
+				//float vIsSnow = 1.0f;
 
 				//Increase snow on ridges
 				vNoise += saturate(vPos.y - SNOW_RIDGE_START_HEIGHT)*(saturate((vNormal.y - 0.9f) * 1000.0f)*vIsSnow);
@@ -229,7 +231,7 @@
 
 			float4 GetFoWColor(float3 vPos, in sampler2D FoWTexture)
 			{
-				return tex2D(FoWTexture, float2(((vPos.x + 0.5f) / MAP_SIZE_X) * FOW_POW2_X, ((vPos.z + 0.5f) / MAP_SIZE_Y) * FOW_POW2_Y));
+				return tex2D(FoWTexture, float2(((vPos.x + 0.5f) / MAP_SIZE_X) * FOW_POW2_X, 1 - ((vPos.z + 0.5f) / MAP_SIZE_Y) * FOW_POW2_Y));
 			}
 
 			bool GetFoWAndTI(float3 PrePos, out float4 vFoWColor, out float TI, out float4 vTIColor)
@@ -277,14 +279,17 @@
 				vTileRepeat = frac(vTileRepeat);
 
 				//#ifdef NO_SHADER_TEXTURE_LOD
-				vTileRepeat *= 0.98;
-				vTileRepeat += 0.01;
+				//vTileRepeat *= 0.98;
+				//vTileRepeat += 0.01;
 				//#endif
 
 				float vTexelsPerTile = vMipTexels / NUM_TILES;
 
 				vTileRepeat *= (vTexelsPerTile - 1.0f) / vTexelsPerTile;
-				return float4((float2(IndexU, IndexV) + vTileRepeat) / NUM_TILES + 0.5f / vMipTexels, 0.0f, lod);
+				//return float4((float2(IndexU, IndexV) + vTileRepeat) / NUM_TILES + 0.5f / vMipTexels, 0.0f, lod);
+				float2 temp = (float2(IndexU, IndexV) + vTileRepeat) / NUM_TILES;
+				temp.y = 1.0 - temp.y;
+				return float4(temp, 0.0f, lod);
 			}
 
 			v2f vert (appdata v)
@@ -316,6 +321,11 @@
 				{
 					return float4(vTIColor.rgb, 1.0f);
 				}
+
+				vFoWColor = GetFoWColor(Input.prepos, FoWTexture);
+				float TI = GetTI(vFoWColor);
+				vTIColor = GetTIColor(Input.prepos, TITexture);
+				//return (TI - 0.99f) * 1000.0f <= 0.0f;
 
 				float vAllSame;
 				float4 IndexU = float4(1, 1, 1, 1);
@@ -369,6 +379,15 @@
 
 				//Terrain Sample Position
 				float4 vTerrainSamplePosition = sample_terrain(IndexU.w, IndexV.w, vTileRepeat, vMipTexels, lod);
+
+				if(IndexV.w >_A && IndexV.w < (_A + 0.99f))
+				{
+					//return 1;
+				}
+				else
+				{
+					//return 0;
+				}
 
 				//采样地形
 
@@ -428,7 +447,7 @@
 				//float3 vTerrainNormalSample = tex2D(_TerrainNormal, vTerrainSamplePosition).rbg - 0.5f;
 
 				//if(false)
-				if (vAllSame < 1.0f)
+				//if (vAllSame < 1.0f)
 				{
 					float4 TerrainSampleX = sample_terrain(IndexU.x, IndexV.x, vTileRepeat, vMipTexels, lod);
 					float4 TerrainSampleY = sample_terrain(IndexU.y, IndexV.y, vTileRepeat, vMipTexels, lod);
@@ -456,7 +475,14 @@
 
 					vTerrainDiffuseSample = lerp(lerp(ColorRU, ColorLU, vBlendFactors.x),lerp(ColorRD, vTerrainDiffuseSample, vBlendFactors.y),vBlendFactors.z);
 
-					
+					float3 terrain_normalRD = tex2Dlod(_TerrainNormal, TerrainSampleX).rbg - 0.5f;
+					float3 terrain_normalLU = tex2Dlod(_TerrainNormal, TerrainSampleY).rbg - 0.5f;
+					float3 terrain_normalRU = tex2Dlod(_TerrainNormal, TerrainSampleZ).rbg - 0.5f;
+
+					vTerrainNormalSample =
+						((1.0f - vBlendFactors.x) * terrain_normalRU + vBlendFactors.x * terrain_normalLU) * (1.0f - vBlendFactors.z) +
+						((1.0f - vBlendFactors.y) * terrain_normalRD + vBlendFactors.y * vTerrainNormalSample) * vBlendFactors.z;
+
 				}
 
 				//return vTerrainDiffuseSample;
@@ -469,23 +495,30 @@
 
 				float4 vOut = float4(TerrainColor, 1.0);
 
-				//高度法向
-				vHeightNormalSample = CalcNormalForLighting(vHeightNormalSample, vTerrainNormalSample);
+				//return vTerrainDiffuseSample;
+				//return vOut;
+				{
+					//高度法向
+					vHeightNormalSample = CalcNormalForLighting(vHeightNormalSample, vTerrainNormalSample);
 
-				//对地形DiffuseSamples 和 TerrainColor 应用颜色修正
-				vTerrainDiffuseSample.rgb = GetOverlay(vTerrainDiffuseSample.rgb, TerrainColor, 0.75f);
-				//应用Snow
-				vTerrainDiffuseSample.rgb = ApplySnow(vTerrainDiffuseSample.rgb, Input.prepos, vHeightNormalSample, vFoWColor, FoWDiffuse);
-				//计算第二次
-				vTerrainDiffuseSample.rgb = calculate_secondary_compressed(Input.uv, vTerrainDiffuseSample.rgb, Input.prepos.xz);
+					//对地形DiffuseSamples 和 TerrainColor 应用颜色修正
+					vTerrainDiffuseSample.rgb = GetOverlay(vTerrainDiffuseSample.rgb, TerrainColor, 0.75f);
+					
+					//应用Snow
+					vTerrainDiffuseSample.rgb = ApplySnow(vTerrainDiffuseSample.rgb, Input.prepos, vHeightNormalSample, vFoWColor, FoWDiffuse);
+					//return vTerrainDiffuseSample;
+					//计算第二次
+					vTerrainDiffuseSample.rgb = calculate_secondary_compressed(Input.uv, vTerrainDiffuseSample.rgb, Input.prepos.xz);
 
-				float3 TestNormal = (0, 1, 0);
+					vOut = float4(CalculateMapLighting(vTerrainDiffuseSample.rgb, vHeightNormalSample), 1.0);
+				}
+				//return vFoWColor;
 
 				//应用光照
-				vOut = float4(CalculateMapLighting(vTerrainDiffuseSample.rgb, vHeightNormalSample), 1.0);
+				
 				float3 result = vTerrainDiffuseSample.rgb;
 			
-				return float4(result,1);
+				return vOut;
 			}
 			ENDCG
 		}

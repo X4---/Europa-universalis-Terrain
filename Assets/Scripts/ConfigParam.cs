@@ -17,9 +17,7 @@ public static class ConfigParam{
 
     //每一个BLOCK 所占用的贴图的值
     public static int PERBLOCKSIZE = 65;
-
     
-
     //每个BLOCK块中面片数量
     public static int PERBLOCKCOUNT = (PERBLOCKSIZE-1);// 64 个方形
     public static int PERBLOCKCELLCOUNT = PERBLOCKCOUNT * PERBLOCKCOUNT;// 64 * 64 = 4096 个正方形
@@ -38,5 +36,7 @@ public static class ConfigParam{
     //BLOCK的长宽值
     public static int BLOCKWIDTHCOUNT = BLOCKMAXWIDTH / PERBLOCKCOUNT;// 88 个
     public static int BLOCKHEIGHTCOUNT = BLOCKMAXHEIGHT / PERBLOCKCOUNT;// 32 个
+
+    public static int Water_Height = 19;
 
 }

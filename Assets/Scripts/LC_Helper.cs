@@ -30,6 +30,16 @@ public class LC_Helper
 
         return false;
     }
+
+    public static bool Loop(int loopcount, Action<int> cellcall)
+    {
+        for(int i =0,iMax = loopcount; i < iMax; ++i)
+        {
+            cellcall(i);
+        }
+
+        return false;
+    }
     
 
 }

@@ -20,12 +20,6 @@ public class TerrainCell : MonoBehaviour {
     private void Awake()
     {
         kMesh = GetComponent<MeshFilter>().mesh = new Mesh();
-
-        var lodgroup = GetComponent<LODGroup>();
-        if(lodgroup != null)
-        {
-            lodgroup.enabled = false;
-        }
     }
 
     public void Apply()
@@ -34,14 +28,7 @@ public class TerrainCell : MonoBehaviour {
         kMesh.SetColors(colors);
         kMesh.SetUVs(0,uvs);
         kMesh.SetTriangles(triangles, 0);
-        //kMesh.RecalculateNormals();
-
-        var lodgroup = GetComponent<LODGroup>();
-        if (lodgroup != null)
-        {
-            lodgroup.enabled = true;
-            lodgroup.RecalculateBounds();
-        }
+        
     }
 
     public void Gen(int BlockCountx, int BlockCountz)

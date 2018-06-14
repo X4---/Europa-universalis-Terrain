@@ -150,6 +150,14 @@ Material:
         m_Texture: {fileID: 2800000, guid: 3ab5e69b3ed8829449f0e2132750a2ad, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TerrainUnderWater:
+        m_Texture: {fileID: 2800000, guid: d65896bfd095b0a4483529c0b3214e8e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TerrainUnderWaterNoise:
+        m_Texture: {fileID: 2800000, guid: 8fe842dcc050c094fb8f1fcdc1e71625, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _TillMap:
         m_Texture: {fileID: 2800000, guid: 98e3eb1cf7b379c46b5c76e34e1597ee, type: 3}
         m_Scale: {x: 1, y: 1}

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.50371015, g: 0.57277375, b: 0.66875625, a: 1}
+  m_IndirectSpecularColor: {r: 0.5017224, g: 0.56900114, b: 0.6674258, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -108,6 +108,90 @@ NavMeshSettings:
     tileSize: 256
     accuratePlacement: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &310162982
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 310162983}
+  - component: {fileID: 310162986}
+  - component: {fileID: 310162985}
+  - component: {fileID: 310162984}
+  m_Layer: 8
+  m_Name: RiverCell
+  m_TagString: TerrainTag
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &310162983
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 310162982}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 863713133}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &310162984
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 310162982}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac0e78a42e50def4cb747957ee3ab780, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  kMesh: {fileID: 0}
+  kHeightMap: {fileID: 0}
+  kRiverMap: {fileID: 0}
+--- !u!23 &310162985
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 310162982}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 340671f1b62bad34e88bcdb4194ca815, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!33 &310162986
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 310162982}
+  m_Mesh: {fileID: 0}
 --- !u!1 &863713132
 GameObject:
   m_ObjectHideFlags: 0
@@ -117,6 +201,7 @@ GameObject:
   m_Component:
   - component: {fileID: 863713133}
   - component: {fileID: 863713134}
+  - component: {fileID: 863713135}
   m_Layer: 8
   m_Name: TerrainGrid
   m_TagString: TerrainTag
@@ -136,6 +221,7 @@ Transform:
   m_Children:
   - {fileID: 1338731780}
   - {fileID: 1716199243}
+  - {fileID: 310162983}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -151,6 +237,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   kcell: {fileID: 1716199246}
+--- !u!114 &863713135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 863713132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3beb0d75f618c6d40b1a5353b44d9cd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  kCell: {fileID: 310162984}
+  kHeightMap: {fileID: 2800000, guid: 41d7cfa6b0735064db09f99e73303e94, type: 3}
+  kRiverMap: {fileID: 2800000, guid: f31bf562c6a9f1f4ca22538b4a3484c8, type: 3}
 --- !u!1 &933405555
 GameObject:
   m_ObjectHideFlags: 0
@@ -417,6 +517,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   kMesh: {fileID: 0}
   kUnderWaterPassCam: {fileID: 985114294}
+  kRT: {fileID: 0}
 --- !u!1 &1716199242
 GameObject:
   m_ObjectHideFlags: 0

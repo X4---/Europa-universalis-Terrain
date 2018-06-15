@@ -7,8 +7,10 @@ using UnityEngine;
 public class SeaCell : MonoBehaviour {
 
     public Mesh kMesh;
-
     public Camera kUnderWaterPassCam;
+    public RenderTexture kRT;
+
+    private MeshRenderer kRender;
 
     [NonSerialized] public List<Vector3> vertices;
     [NonSerialized] public List<Color> colors;
@@ -18,7 +20,9 @@ public class SeaCell : MonoBehaviour {
     private void Awake()
     {
         kMesh = GetComponent<MeshFilter>().mesh = new Mesh();
+        kRender = GetComponent<MeshRenderer>();
         Gen();
+        ResetRT();
     }
 
     public void Apply()
@@ -67,5 +71,26 @@ public class SeaCell : MonoBehaviour {
         triangles.Add(0);
 
         Apply();
+    }
+    
+    public void ResetRT()
+    {
+        if(kRT == null && kUnderWaterPassCam != null)
+        {
+            kRT = kUnderWaterPassCam.targetTexture;
+
+            if(kRender != null && kRT != null)
+            {
+                var kMat = kRender.sharedMaterial;
+                if(kMat != null)
+                {
+
+                    kMat.SetTexture("WaterRefraction", kRT);
+                }
+
+            }
+        }
+
+
     }
 }

@@ -52,6 +52,10 @@
 			const static float WATER_HEIGHT_RECP_SQUARED = WATER_HEIGHT_RECP * WATER_HEIGHT_RECP;
 			const static float vTimeScale = 0.5f / 300.0f;	
 
+			
+			static const float 	WATER_TILE					= 1.0f;
+			static const float 	WATER_TIME_SCALE			= 12.0f;
+
 
 			float _vBorderLookup_HeightScale_UseMultisample_SeasonLerp;
 			float4 vFoWOpacity_Time;
@@ -207,6 +211,36 @@
 				vSecondary.a -= 0.5 * saturate(saturate(frac(vPos.x / 2.0) - 0.7) * 10000.0);
 				vSecondary.a = saturate(saturate(vSecondary.a) * 3.0) * vMask.a;
 				return vColor * (1.0 - vSecondary.a) + (vSecondColor / float(nDivisor)) * vSecondary.a;
+			}
+
+			float CalculateSpecular( float3 vPos, float3 vNormal, float vInIntensity )
+			{
+				float3 H = normalize( -normalize( vPos - _WorldSpaceCameraPos.xyz ) + -vLightDir );
+				float vSpecWidth = 10.0f;
+				float vSpecMultiplier = 2.0f;
+				return saturate( pow( saturate( dot( H, vNormal ) ), vSpecWidth ) * vSpecMultiplier ) * vInIntensity;
+			}
+
+			float3 CalculateSpecular( float3 vPos, float3 vNormal, float3 vInIntensity )
+			{
+				float3 H = normalize( -normalize( vPos - _WorldSpaceCameraPos.xyz ) + -vLightDir );
+				float vSpecWidth = 10.0f;
+				float vSpecMultiplier = 2.0f;
+				return saturate( pow( saturate( dot( H, vNormal ) ), vSpecWidth ) * vSpecMultiplier ) * vInIntensity;
+			}
+
+			float3 ComposeSpecular( float3 vColor, float vSpecular ) 
+			{
+				return saturate( vColor + vSpecular );// * STANDARD_HDR_RANGE + ( 1.0f - STANDARD_HDR_RANGE ) * vSpecular;
+			}
+
+			float GetFoW( float3 vPos, float4 vFoWColor, in sampler2D FoWDiffuse )
+			{
+				float vFoWDiffuse = tex2D( FoWDiffuse, ( vPos.xz + 0.5f ) / 256.0f + vFoWOpacity_Time.y * 0.02f ).r;
+				vFoWDiffuse = sin( ( vFoWDiffuse + frac( vFoWOpacity_Time.y * 0.1f ) ) * 6.28318531f ) * 0.1f;
+				float vShade = vFoWDiffuse + 0.5f;
+				float vIsFow = vFoWColor.a;
+				return lerp( 1.0f, saturate( vIsFow + vShade ), vFoWOpacity_Time.x );
 			}
 
 

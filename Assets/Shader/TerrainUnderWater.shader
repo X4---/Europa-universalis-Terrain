@@ -15,7 +15,7 @@
 	}
 		SubShader
 	{
-		Tags{ "RenderType" = "Opaque"  "TerrainTag" = "Use"}
+		Tags{ "RenderType" = "Background"  "TerrainTag" = "Use"}
 		LOD 100
 
 		Pass

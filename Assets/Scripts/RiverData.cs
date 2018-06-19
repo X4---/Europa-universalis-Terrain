@@ -43,6 +43,7 @@ public class RiverData{
 
         return true;
     }
+
     public class Bounds
     {
         public Vector3 pos;
@@ -122,7 +123,7 @@ public class RiverData{
 
         public void Expand(Texture2D cor, bool[][] gened)
         {
-            for(Direction i = Direction.Up; i < Direction.Left; ++i)
+            for(Direction i = Direction.Up; i <= Direction.Left; ++i)
             {
                 ExpandDir(i, cor, gened);
             }
@@ -136,6 +137,8 @@ public class RiverData{
         Down = 2,
         Left = 3,
     }
+    
+    public Bounds kOrigin;
 
     private Direction ExDir(Direction dir)
     {
@@ -166,7 +169,12 @@ public class RiverData{
         Bounds origin = new Bounds(point);
         gened[(int)(point.x)][(int)(point.z)] = true;
         origin.Expand(colortex, gened);
+
+        kOrigin = origin;
     }
+
+
+   
 
    
 

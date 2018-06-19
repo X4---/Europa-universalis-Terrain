@@ -17,13 +17,14 @@ public class RiverGrid : MonoBehaviour {
     private RiverCell[] cells;
 
     private List<RiverData> rivers = new List<RiverData>();
-    private List<RiverData> saverivesr = new List<RiverData>();
 
     private IEnumerator gen = null;
+    private IEnumerator rivercells = null;
 
     private void Awake()
     {
         gen = GenRiverIE();
+        rivercells = GenRiverCell();
     }
 
     private void Update()
@@ -39,6 +40,17 @@ public class RiverGrid : MonoBehaviour {
                 if(cur - k > 1.0 / 60)
                 {
                     return ;
+                }
+            }
+
+
+            while(rivercells.MoveNext())
+            {
+                var cur = Time.realtimeSinceStartup;
+
+                if (cur - k > 1.0 / 60)
+                {
+                    return;
                 }
             }
         }
@@ -92,6 +104,30 @@ public class RiverGrid : MonoBehaviour {
                 }
             }
             
+        }
+
+        yield break;
+    }
+
+    public IEnumerator GenRiverCell()
+    {
+        var objtar = kCell.gameObject;
+        var transformcache = this.transform;
+        cells = new RiverCell[rivers.Count];
+
+
+        for(int i=0,iMax = rivers.Count; i <iMax; ++i)
+        {
+            var ins = GameObject.Instantiate(objtar, transformcache);
+            var cell = ins.GetComponent<RiverCell>();
+
+            cells[i] = cell;
+
+            cell.Gen(rivers[i]);
+            cell.Apply();
+
+
+            yield return null;
         }
 
         yield break;

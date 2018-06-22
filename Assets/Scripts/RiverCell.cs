@@ -106,7 +106,55 @@ public class RiverCell : MonoBehaviour {
             triangles.Add(2 + verticesoffset);
             triangles.Add(3 + verticesoffset);
             triangles.Add(0 + verticesoffset);
-            
+
+
+            if((tar.type & (RiverData.RiverBoundsType.BeginPoint |
+                RiverData.RiverBoundsType.EndPoint)) != 0)
+            {
+                colors.Add(tar.cor);
+                colors.Add(tar.cor);
+                colors.Add(tar.cor);
+                colors.Add(tar.cor);
+            }else if( (tar.type & RiverData.RiverBoundsType.Main) != 0)
+            {
+                var a = Color.white;
+
+                colors.Add(a);
+                colors.Add(a);
+                colors.Add(a);
+                colors.Add(a);
+
+
+            }else
+            {
+                if( (tar.type & RiverData.RiverBoundsType.In) != 0)
+                {
+                    var a = Color.gray;
+
+                    colors.Add(a);
+                    colors.Add(a);
+                    colors.Add(a);
+                    colors.Add(a);
+
+                }
+                else
+                {
+                    var a = Color.black;
+
+                    colors.Add(a);
+                    colors.Add(a);
+                    colors.Add(a);
+                    colors.Add(a);
+                }
+
+                
+
+            }
+
+
+
+
+
             verticesoffset += 4;
         }
     }

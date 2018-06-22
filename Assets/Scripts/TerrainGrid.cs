@@ -19,7 +19,7 @@ public class TerrainGrid : MonoBehaviour {
         {
             var ins = GameObject.Instantiate(objtar, transformcache);
             var cell = ins.GetComponent<TerrainCell>();
-
+            ins.name = objtar.name + string.Format("({0},{1})", i, j);
             cells[i * ConfigParam.BLOCKHEIGHTCOUNT + j] = cell;
 
             cell.Gen(i, j);

@@ -94,7 +94,7 @@ public class RiverGrid : MonoBehaviour {
                     {
                         Vector3 pos = new Vector3(i, 0, j);
                         var newRiver = pool.New();
-                        newRiver.PointGenRiver(pos, kRiverMap, Gened);
+                        newRiver.PointGenRiver(pos, kRiverMap, Gened, rivers.Count);
                         rivers.Add(newRiver);
                     }
 
@@ -121,6 +121,7 @@ public class RiverGrid : MonoBehaviour {
             var ins = GameObject.Instantiate(objtar, transformcache);
             var cell = ins.GetComponent<RiverCell>();
 
+            ins.name = objtar.name + i;
             cells[i] = cell;
 
             cell.Gen(rivers[i]);

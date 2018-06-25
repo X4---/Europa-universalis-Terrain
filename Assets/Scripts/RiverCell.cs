@@ -10,18 +10,20 @@ public class RiverCell : MonoBehaviour {
     public Mesh kMesh;
     public Texture2D kHeightMap;
     public Texture2D kRiverMap;
+    public Texture2D kNoiseMap;
 
     [NonSerialized] public List<Vector3> vertices;
     [NonSerialized] public List<Color> colors;
     [NonSerialized] public List<Vector2> uvs;
     [NonSerialized] public List<int> triangles;
-
-    private Dictionary<RiverData.Bounds, int> hasGened;
-
+    
+    private int verticesOffset = 0;
     private void Awake()
     {
         kMesh = GetComponent<MeshFilter>().mesh = new Mesh();
     }
+
+    private List<Vector3> kBoundsPoints;
 
     public void Gen(RiverData data)
     {
@@ -29,19 +31,18 @@ public class RiverCell : MonoBehaviour {
         colors = new List<Color>();
         uvs = new List<Vector2>();
         triangles = new List<int>();
+        kBoundsPoints = new List<Vector3>();
 
-        hasGened = new Dictionary<RiverData.Bounds, int>();
-        
-        int verticesOffset = 0;
-        List<RiverData.Bounds> klists = new List<RiverData.Bounds>();
-        klists.Add(data.kOrigin);
+        verticesOffset = 0;
 
-        while(klists.Count > 0)
+        for (int i =0,iMax = data.kOrigins.Count; i<iMax; ++i)
         {
-            GenBounds(klists, hasGened, ref verticesOffset);
+            var river = data.kOrigins[i];
+            if((river.type & RiverData.RiverBoundsType.BeginPoint) !=0)
+            {
+                GenFromOriginBounds(river, null);
+            }
         }
-
-        hasGened = null;
     }
 
     public void Apply()
@@ -50,6 +51,90 @@ public class RiverCell : MonoBehaviour {
         kMesh.SetColors(colors);
         kMesh.SetUVs(0, uvs);
         kMesh.SetTriangles(triangles, 0);
+    }
+
+    private void GenFromOriginBounds(RiverData.Bounds kCur, RiverData.Bounds before)
+    {
+        if( before == null)// 这是原点
+        {
+            var next = kCur.GetLink(kCur.flowDir);
+            if(kCur != null)
+            {
+                float centerx = kCur.pos.x + 0.5f;
+                float centerz = kCur.pos.z + 0.5f;
+
+                Vector3 center = new Vector3(centerx, 0, centerz);
+                var leftcorner = BorderLeft(center, kCur.flowDir);
+                var rightcorner = BorderRight(center, kCur.flowDir);
+
+
+            }
+
+        }else
+        {
+
+        }
+
+    }
+
+
+    private Vector3 BorderLeft(Vector3 center, RiverData.Direction dir)
+    {
+        Vector3 result = new Vector3();
+        switch(dir)
+        {
+            case RiverData.Direction.Up:
+                result.x = center.x - 0.5f;
+                result.z = center.z + 0.5f;
+                break;
+            case RiverData.Direction.Right:
+                result.x = center.x + 0.5f;
+                result.z = center.z + 0.5f;
+                break;
+            case RiverData.Direction.Down:
+                result.x = center.x + 0.5f;
+                result.z = center.z - 0.5f;
+                break;
+            case RiverData.Direction.Left:
+                result.x = center.x - 0.5f;
+                result.z = center.z - 0.5f;
+                break;
+        }
+
+        return result;
+    }
+    private Vector3 BorderRight(Vector3 center, RiverData.Direction dir)
+    {
+        Vector3 result = new Vector3();
+        switch (dir)
+        {
+            case RiverData.Direction.Up:
+                result.x = center.x + 0.5f;
+                result.z = center.z + 0.5f;
+                break;
+            case RiverData.Direction.Right:
+                result.x = center.x + 0.5f;
+                result.z = center.z - 0.5f;
+                break;
+            case RiverData.Direction.Down:
+                result.x = center.x - 0.5f;
+                result.z = center.z - 0.5f;
+                break;
+            case RiverData.Direction.Left:
+                result.x = center.x - 0.5f;
+                result.z = center.z + 0.5f;
+                break;
+        }
+
+        return result;
+    }
+
+    private Vector3 LerpPos(Vector3 Begin, Vector3 End, float range)
+    {
+        Vector3 result = new Vector3();
+        range = Mathf.Clamp(range, 0f, 1f);
+        result = Begin * range + End * (1 - range);
+        return result;
     }
 
     private void GenBounds(List<RiverData.Bounds> cached, Dictionary<RiverData.Bounds, int> gened, ref int verticesoffset)
@@ -107,53 +192,36 @@ public class RiverCell : MonoBehaviour {
             triangles.Add(3 + verticesoffset);
             triangles.Add(0 + verticesoffset);
 
+            Color a = Color.black;
 
             if((tar.type & (RiverData.RiverBoundsType.BeginPoint |
                 RiverData.RiverBoundsType.EndPoint)) != 0)
             {
-                colors.Add(tar.cor);
-                colors.Add(tar.cor);
-                colors.Add(tar.cor);
-                colors.Add(tar.cor);
+                a = tar.cor *  ( 1.0f -  Mathf.Clamp( tar.widthModify , 1f, 50.0f) / 50f) ;
+                
             }else if( (tar.type & RiverData.RiverBoundsType.Main) != 0)
             {
-                var a = Color.white;
-
-                colors.Add(a);
-                colors.Add(a);
-                colors.Add(a);
-                colors.Add(a);
-
+                a = Color.white * (1.0f - Mathf.Clamp(tar.widthModify, 1f, 50.0f) / 50f);
 
             }else
             {
                 if( (tar.type & RiverData.RiverBoundsType.In) != 0)
                 {
-                    var a = Color.gray;
-
-                    colors.Add(a);
-                    colors.Add(a);
-                    colors.Add(a);
-                    colors.Add(a);
-
+                    a = Color.blue * (1.0f - Mathf.Clamp(tar.widthModify, 1f, 50.0f) / 50f);
                 }
                 else
                 {
-                    var a = Color.black;
-
-                    colors.Add(a);
-                    colors.Add(a);
-                    colors.Add(a);
-                    colors.Add(a);
+                    a = Color.yellow * (1.0f - Mathf.Clamp(tar.widthModify, 1f, 50.0f) / 50f);
                 }
 
                 
 
             }
 
-
-
-
+            colors.Add(a);
+            colors.Add(a);
+            colors.Add(a);
+            colors.Add(a);
 
             verticesoffset += 4;
         }

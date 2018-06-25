@@ -271,9 +271,9 @@ public class RiverData{
                     {
                         if ((l.type & RiverBoundsType.Branch) != 0)
                         {
-                            var result = l.GenWidthModify() + 1.0f;
+                            var result = Math.Max( l.GenWidthModify(), widthModify) + 1.0f;
                             widthModify = result;
-                            return result;
+                            
 
                         }
                     }
@@ -283,8 +283,7 @@ public class RiverData{
 
             }
 
-
-            return 1.0f;
+            return widthModify;
         }
         
     }
@@ -292,6 +291,7 @@ public class RiverData{
 
     public enum Direction : int
     {
+        NotExist = -1,
         Up = 0,
         Right = 1,
         Down = 2,
@@ -301,6 +301,8 @@ public class RiverData{
     }
     
     public Bounds kOrigin;
+
+    public List<Bounds> kOrigins = new List<Bounds>();
 
     public static Direction ExDir(Direction dir)
     {
@@ -322,7 +324,7 @@ public class RiverData{
                 break;
         }
 
-        return Direction.Up;
+        return Direction.NotExist;
 
     }
     
@@ -351,6 +353,7 @@ public class RiverData{
 
             if (bounds.IsBeginOrEnd())
             {
+                kOrigins.Add(bounds);
                 bounds.type |= RiverBoundsType.BeginPoint;
                 bounds.type |= RiverBoundsType.EndPoint;
                 

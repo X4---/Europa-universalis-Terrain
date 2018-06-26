@@ -64,6 +64,28 @@ public class RiverData{
         return false;
     }
 
+    public static bool isBeginColor(Color tarcor)
+    {
+        if (tarcor.r > 0.95 && tarcor.g > 0.95 && tarcor.b < 0.01) //黄 
+        {
+            return true;
+        }
+        else if (tarcor == Color.green) //绿 七点
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public static bool isEndColor(Color tarcor)
+    {
+        if (tarcor == Color.red) //red
+        {
+            return true;
+        }
+        return false;
+    }
+
     public static bool isOriColor(Color tarcor)
     {
         if(tarcor == Color.green)
@@ -342,7 +364,7 @@ public class RiverData{
 
 
     private Dictionary<Bounds, int> kRecord = new Dictionary<Bounds, int>();
-    public void GenType(int i)
+    public void GenType(int index)
     {
         bool bhasori = false;
         kRecord.Clear();
@@ -350,12 +372,19 @@ public class RiverData{
         SearchRiver((bounds) =>
         {
             bounds.type |= RiverBoundsType.Marked;
+            bounds.flowDir = Direction.NotExist;
 
             if (bounds.IsBeginOrEnd())
             {
                 kOrigins.Add(bounds);
-                bounds.type |= RiverBoundsType.BeginPoint;
-                bounds.type |= RiverBoundsType.EndPoint;
+                
+                if(isBeginColor(bounds.cor))
+                {
+                    bounds.type |= RiverBoundsType.BeginPoint;
+                }else
+                {
+                    bounds.type |= RiverBoundsType.EndPoint;
+                }
                 
                 if(isOriColor(bounds.cor))
                 {
@@ -374,7 +403,7 @@ public class RiverData{
         {
             Dictionary<Color, int> temp = new Dictionary<Color, int>();
 
-            Debug.Log("No Ori Found "+ i);
+            Debug.Log("No Ori Found "+ index);
             SearchRiver((Bounds) =>
             {
                 if(temp.ContainsKey(Bounds.cor))
@@ -450,40 +479,54 @@ public class RiverData{
 
                 }
             }
-
-            if(before != null)
-            {
-                if( (before.type & RiverBoundsType.Main) != 0 && (bounds.type & RiverBoundsType.Main) !=0)
-                {
-                    for (Direction dir = Direction.Begin; dir <= Direction.End; ++dir)
-                    {
-                        var link = before.GetLink(dir);
-                        if (link == bounds)
-                        {
-                            before.flowDir = dir;
-                        }
-                    }
-                }
-                else
-                {
-                    for (Direction dir = Direction.Begin; dir <= Direction.End; ++dir)
-                    {
-                        var link = bounds.GetLink(dir);
-                        if (link == before)
-                        {
-                            bounds.flowDir = dir;
-                        }
-                    }
-                }
-
-                
-            }
         });
 
         SearchRiver((bounds) =>
         {
             bounds.GenWidthModify();
         });
+
+        for(int i=0,iMax = kOrigins.Count; i < iMax; ++i)
+        {
+            var ori = kOrigins[i];
+            if((ori.type & RiverBoundsType.BeginPoint) != 0)
+            {
+                var cur = ori;
+                Direction predir = Direction.NotExist;
+                Bounds preb = null;
+                while(cur != null)
+                {
+                    if( cur.IsBeginOrEnd() && cur != ori)
+                    {
+                        break;
+                    }
+
+                    bool bfind = false;
+
+                    for (Direction dir = Direction.Begin; dir <= Direction.End; ++dir)
+                    {
+                        var next = cur.GetLink(dir);
+                        if(next != null && next != preb)
+                        {
+                            preb = cur;
+                            cur.flowDir = dir;
+                            predir = dir;
+                            cur = next;
+                            bfind = true;
+                            break;
+                        }
+                    }
+
+                    if(!bfind)
+                    {
+                        cur.flowDir = predir;
+                        cur = null;
+                    }
+
+                    
+                }
+            }
+        }
     }
 
     public void SearchRiver(RiverSearchDelegate call)

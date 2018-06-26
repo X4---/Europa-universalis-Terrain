@@ -115,8 +115,8 @@ public class RiverGrid : MonoBehaviour {
         var transformcache = this.transform;
         cells = new RiverCell[rivers.Count];
 
-
-        for(int i=0,iMax = rivers.Count; i <iMax; ++i)
+        for (int i = 0, iMax = 3; i < iMax; ++i)
+            //for (int i=0,iMax = rivers.Count; i <iMax; ++i)
         {
             var ins = GameObject.Instantiate(objtar, transformcache);
             var cell = ins.GetComponent<RiverCell>();

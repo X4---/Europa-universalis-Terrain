@@ -3,12 +3,17 @@ guid: effde089d97a2b044b9baecc0836edae
 timeCreated: 1526451947
 licenseType: Pro
 IHVImageFormatImporter:
+  externalObjects: {}
   textureSettings:
+    serializedVersion: 2
     filterMode: 1
     aniso: 1
     mipBias: 0
-    wrapMode: 0
-  isReadable: 0
+    wrapU: 0
+    wrapV: 0
+    wrapW: 0
+  isReadable: 1
+  sRGBTexture: 1
   userData: 
   assetBundleName: 
   assetBundleVariant: 

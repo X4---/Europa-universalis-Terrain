@@ -12,6 +12,8 @@ public class RiverCell : MonoBehaviour {
     public Texture2D kRiverMap;
     public Texture2D kNoiseMap;
 
+    public float kNoisePercent = 0.1f;
+
     [NonSerialized] public List<Vector3> vertices;
     [NonSerialized] public List<Color> colors;
     [NonSerialized] public List<Vector2> uvs;
@@ -24,6 +26,7 @@ public class RiverCell : MonoBehaviour {
     }
 
     private List<Vector3> kBoundsPoints;
+    private RiverData.Bounds kCurE, kPre;
 
     public void Gen(RiverData data)
     {
@@ -37,10 +40,17 @@ public class RiverCell : MonoBehaviour {
 
         for (int i =0,iMax = data.kOrigins.Count; i<iMax; ++i)
         {
+           
             var river = data.kOrigins[i];
             if((river.type & RiverData.RiverBoundsType.BeginPoint) !=0)
             {
-                GenFromOriginBounds(river, null);
+                kCurE = river;
+                kPre = null;
+
+                while(kCurE != null)
+                {
+                    GenFromOriginBounds(kCurE, kPre);
+                }
             }
         }
     }
@@ -51,30 +61,107 @@ public class RiverCell : MonoBehaviour {
         kMesh.SetColors(colors);
         kMesh.SetUVs(0, uvs);
         kMesh.SetTriangles(triangles, 0);
+
+        Debug.Log("vertices cout " + vertices.Count);
     }
 
     private void GenFromOriginBounds(RiverData.Bounds kCur, RiverData.Bounds before)
     {
-        if( before == null)// 这是原点
+        if(kCur == null)
         {
-            var next = kCur.GetLink(kCur.flowDir);
-            if(kCur != null)
+
+            Debug.Log("CC");
+        }
+
+        if (before == null)// 这是原点
+        {
+            //if (kCur != null)
             {
                 float centerx = kCur.pos.x + 0.5f;
                 float centerz = kCur.pos.z + 0.5f;
 
                 Vector3 center = new Vector3(centerx, 0, centerz);
-                var leftcorner = BorderLeft(center, kCur.flowDir);
-                var rightcorner = BorderRight(center, kCur.flowDir);
+
+                var borderleft = BorderLeft(center, kCur.flowDir);
+                var borderright = BorderRight(center, kCur.flowDir);
+
+                var downleft = DownLeft(center, kCur.flowDir);
+                var downRight = DownRight(center, kCur.flowDir);
+
+                var mid = ModifyVector(LerpPos(downleft, downRight, 0.5f));
+
+                var l = ModifyVector(LerpPos(borderleft, borderright, 1 - kNoisePercent));
+                var r = ModifyVector(LerpPos(borderright, borderleft, 1 - kNoisePercent));
+
+                kBoundsPoints.Clear();
+                kBoundsPoints.Add(l);
+                kBoundsPoints.Add(r);
+
+                vertices.Add(mid);
+                vertices.Add(l);
+                vertices.Add(r);
+                vertices.Add(mid);
+
+                triangles.Add(verticesOffset + 0);
+                triangles.Add(verticesOffset + 1);
+                triangles.Add(verticesOffset + 2);
+                triangles.Add(verticesOffset + 2);
+                triangles.Add(verticesOffset + 3);
+                triangles.Add(verticesOffset + 0);
+
+                verticesOffset += 4;
+
 
 
             }
 
-        }else
+        }
+        else
         {
+            var dir = kCur.flowDir;
+            var nextb = kCur.GetLink(kCur.flowDir);
+            if(nextb == null)
+            {
+                dir = before.flowDir;
+            }
 
+            float centerx = kCur.pos.x + 0.5f;
+            float centerz = kCur.pos.z + 0.5f;
+
+            Vector3 center = new Vector3(centerx, 0, centerz);
+
+            var borderleft = BorderLeft(center, kCur.flowDir);
+            var borderright = BorderRight(center, kCur.flowDir);
+
+            var downl = kBoundsPoints[0];
+            var downr = kBoundsPoints[1];
+
+            var l = ModifyVector(LerpPos(borderleft, borderright, 1 - kNoisePercent));
+            var r = ModifyVector(LerpPos(borderright, borderleft, 1 - kNoisePercent));
+
+            kBoundsPoints.Clear();
+            kBoundsPoints.Add(l);
+            kBoundsPoints.Add(r);
+
+            vertices.Add(downl);
+            vertices.Add(l);
+            vertices.Add(r);
+            vertices.Add(downr);
+
+            triangles.Add(verticesOffset + 0);
+            triangles.Add(verticesOffset + 1);
+            triangles.Add(verticesOffset + 2);
+            triangles.Add(verticesOffset + 2);
+            triangles.Add(verticesOffset + 3);
+            triangles.Add(verticesOffset + 0);
+
+            verticesOffset += 4;
         }
 
+
+        kPre = kCurE;
+        kCurE = kCur.GetLink(kCur.flowDir);
+        
     }
 
 
@@ -128,6 +215,56 @@ public class RiverCell : MonoBehaviour {
 
         return result;
     }
+    private Vector3 DownLeft(Vector3 center, RiverData.Direction dir)
+    {
+        Vector3 result = new Vector3();
+        switch (dir)
+        {
+            case RiverData.Direction.Up:
+                result.x = center.x - 0.5f;
+                result.z = center.z - 0.5f;
+                break;
+            case RiverData.Direction.Right:
+                result.x = center.x - 0.5f;
+                result.z = center.z + 0.5f;
+                break;
+            case RiverData.Direction.Down:
+                result.x = center.x + 0.5f;
+                result.z = center.z + 0.5f;
+                break;
+            case RiverData.Direction.Left:
+                result.x = center.x + 0.5f;
+                result.z = center.z - 0.5f;
+                break;
+        }
+
+        return result;
+    }
+    private Vector3 DownRight(Vector3 center, RiverData.Direction dir)
+    {
+        Vector3 result = new Vector3();
+        switch (dir)
+        {
+            case RiverData.Direction.Up:
+                result.x = center.x + 0.5f;
+                result.z = center.z - 0.5f;
+                break;
+            case RiverData.Direction.Right:
+                result.x = center.x - 0.5f;
+                result.z = center.z - 0.5f;
+                break;
+            case RiverData.Direction.Down:
+                result.x = center.x - 0.5f;
+                result.z = center.z + 0.5f;
+                break;
+            case RiverData.Direction.Left:
+                result.x = center.x + 0.5f;
+                result.z = center.z + 0.5f;
+                break;
+        }
+
+        return result;
+    }
 
     private Vector3 LerpPos(Vector3 Begin, Vector3 End, float range)
     {
@@ -136,6 +273,31 @@ public class RiverCell : MonoBehaviour {
         result = Begin * range + End * (1 - range);
         return result;
     }
+
+    private Vector3 NoiseModify(Vector3 kOri)
+    {
+        Vector3 result = kOri;
+        int x = (int)result.x % kNoiseMap.width;
+        int z = (int)result.z & kNoiseMap.height;
+
+        float xx = kNoiseMap.GetPixel(x, z).r * kNoisePercent;
+        float zz = kNoiseMap.GetPixel(x, z).r * kNoisePercent;
+        result.x += xx;
+        result.z += zz;
+
+        return result;
+    }
+    private Vector3 HeightSample(Vector3 kOri)
+    {
+        Vector3 result = kOri;
+        result.y = kHeightMap.GetPixel((int)kOri.x, (int)kOri.z).a * ConfigParam.BLOCKHEIGHT + 1;
+        return result;
+    }
+    private Vector3 ModifyVector(Vector3 kOri)
+    {
+        return HeightSample(NoiseModify(kOri));
+    }
+
 
     private void GenBounds(List<RiverData.Bounds> cached, Dictionary<RiverData.Bounds, int> gened, ref int verticesoffset)
     {

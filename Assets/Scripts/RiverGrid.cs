@@ -14,6 +14,7 @@ public class RiverGrid : MonoBehaviour {
 
     public int Exi;
 
+    public int MaxCount;
     private RiverCell[] cells;
 
     private List<RiverData> rivers = new List<RiverData>();
@@ -73,7 +74,9 @@ public class RiverGrid : MonoBehaviour {
                 LC_Helper.Loop(zsize, (j) =>
                 {
                     Gened[i][j] = false;
+                    RiverData.SearMap(kRiverMap.GetPixel(i, j));
                 });
+                
 
             });
             
@@ -115,8 +118,8 @@ public class RiverGrid : MonoBehaviour {
         var transformcache = this.transform;
         cells = new RiverCell[rivers.Count];
 
-        for (int i = 0, iMax = 3; i < iMax; ++i)
-            //for (int i=0,iMax = rivers.Count; i <iMax; ++i)
+        //for (int i = 0, iMax = 0; i < iMax; ++i)
+        for (int i=0,iMax = Math.Min(rivers.Count, MaxCount); i <iMax; ++i)
         {
             var ins = GameObject.Instantiate(objtar, transformcache);
             var cell = ins.GetComponent<RiverCell>();

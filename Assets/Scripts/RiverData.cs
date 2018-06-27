@@ -24,6 +24,21 @@ public class RiverData{
     public delegate void RiverSearchTDelegate(Bounds kbounds, Bounds before);
 
     public static Dictionary<Color, int> kCor = new Dictionary<Color, int>();
+
+    public static void SearMap(Color tarcor)
+    {
+        int count = 0;
+        if (kCor.TryGetValue(tarcor, out count))
+        {
+            kCor[tarcor] = count + 1;
+
+        }
+        else
+        {
+            kCor.Add(tarcor, 1);
+        }
+    }
+
     public static bool isRiverTex(Color tarcor)
     {
         if (tarcor == Color.white)
@@ -35,16 +50,7 @@ public class RiverData{
             return false;
         }
 
-        int count = 0;
-        if( kCor.TryGetValue(tarcor, out count))
-        {
-            kCor[tarcor] = count + 1;
-
-        }else
-        {
-            kCor.Add(tarcor, 1);
-        }
-
+        
         return true;
     }
 
@@ -96,9 +102,9 @@ public class RiverData{
         return false;
     }
 
-    public static bool isInRiverColor(Color tarcor)
+    public static bool isOutColor(Color tarcor)
     {
-        if(tarcor == Color.red)
+        if (tarcor.r > 0.95 && tarcor.g > 0.95 && tarcor.b < 0.01) //黄 
         {
             return true;
         }
@@ -106,6 +112,18 @@ public class RiverData{
         return false;
     }
 
+    public static Dictionary<Vector3, Bounds> kGenRecord = new Dictionary<Vector3, Bounds>();
+
+    public static Bounds GetPosBounds(Vector3 tar, Color cor)
+    {
+        Bounds result = null;
+        if (!kGenRecord.TryGetValue(tar,out result))
+        {
+            result = new Bounds(tar, cor);
+        }
+        
+        return result;
+    }
     public enum RiverBoundsType :int
     {
         Uninit = 0,
@@ -134,6 +152,8 @@ public class RiverData{
 
         public Direction flowDir;
         public float widthModify;
+
+        public bool bHasGend = false;
 
 
         public Bounds(Vector3 a, Color col)
@@ -168,11 +188,12 @@ public class RiverData{
             if (x >= 0 && x < cor.width && z >= 0 && z < cor.height)
             {
                 var tex = cor.GetPixel(x, z);
-
                 if (gened[x][z] == false && isRiverTex(tex))
                 {
                     gened[x][z] = true;
-                    var newbounds = new Bounds(new Vector3(x, 0, z), tex);
+
+                    var pos = new Vector3(x, 0, z);
+                    var newbounds = GetPosBounds(pos, tex);
                     LinkBounds(Dir, newbounds).Expand(cor, gened);
                 }
             }
@@ -205,11 +226,41 @@ public class RiverData{
             return newlink;
         }
 
+        public void Link(Direction Dir)
+        {
+            var x = (int)pos.x;
+            var z = (int)pos.z;
+
+            switch (Dir)
+            {
+                case Direction.Down:
+                    z -= 1;
+                    break;
+                case Direction.Up:
+                    z += 1;
+                    break;
+                case Direction.Left:
+                    x -= 1;
+                    break;
+                case Direction.Right:
+                    x += 1;
+                    break;
+            }
+
+            Vector3 newpos = new Vector3(x, 0, z);
+            Bounds find = null;
+
+            if( kGenRecord.TryGetValue(newpos, out find))
+            {
+                LinkBounds(Dir, find);
+            }
+        }
+
         public void Expand(Texture2D cor, bool[][] gened)
         {
-            for (Direction i = Direction.Begin; i <= Direction.End; ++i)
+            for (Direction dir = Direction.Begin; dir <= Direction.End; ++dir)
             {
-                ExpandDir(i, cor, gened);
+                ExpandDir(dir, cor, gened);
             }
         }
 
@@ -354,7 +405,7 @@ public class RiverData{
     {
         var cor = colortex.GetPixel((int)point.x, (int)point.z);
 
-        Bounds origin = new Bounds(point, cor);
+        Bounds origin = GetPosBounds(point, cor);
         gened[(int)(point.x)][(int)(point.z)] = true;
         origin.Expand(colortex, gened);
 
@@ -368,6 +419,15 @@ public class RiverData{
     {
         bool bhasori = false;
         kRecord.Clear();
+
+        SearchRiver((bounds) =>
+        {
+            for(Direction dir = Direction.Begin; dir <= Direction.End; ++dir)
+            {
+                bounds.Link(dir);
+            }
+        });
+
         //1stPass Find IsOriginOrEnd 
         SearchRiver((bounds) =>
         {
@@ -377,16 +437,10 @@ public class RiverData{
             if (bounds.IsBeginOrEnd())
             {
                 kOrigins.Add(bounds);
-                
-                if(isBeginColor(bounds.cor))
-                {
-                    bounds.type |= RiverBoundsType.BeginPoint;
-                }else
-                {
-                    bounds.type |= RiverBoundsType.EndPoint;
-                }
-                
-                if(isOriColor(bounds.cor))
+                bounds.type |= RiverBoundsType.BeginPoint;
+                bounds.type &= ~RiverBoundsType.EndPoint;
+
+                if (isOriColor(bounds.cor))
                 {
                     bounds.type |= RiverBoundsType.BeginPoint;
                     bounds.type &= ~RiverBoundsType.EndPoint;
@@ -459,17 +513,17 @@ public class RiverData{
             }else
             {
                 //是边界点
-                if (bounds.IsBeginOrEnd())
+                if (isBeginorEndColor(bounds.cor))
                 {
-                    if (isInRiverColor(bounds.cor))
-                    {
-                        bounds.type |= RiverBoundsType.In;
-                        bounds.type &= ~RiverBoundsType.Out;
-                    }
-                    else
+                    if (isOutColor(bounds.cor))
                     {
                         bounds.type |= RiverBoundsType.Out;
                         bounds.type &= ~RiverBoundsType.In;
+                    }
+                    else
+                    {
+                        bounds.type |= RiverBoundsType.In;
+                        bounds.type &= ~RiverBoundsType.Out;
                     }
                 }
                 else
@@ -481,12 +535,110 @@ public class RiverData{
             }
         });
 
+        for(int i=0,iMax = kOrigins.Count; i < iMax; ++i)
+        {
+            var cur = kOrigins[i];
+
+            //Main
+            if( (cur.type & RiverBoundsType.Main) != 0)
+            {
+                if( isOriColor(cur.cor))
+                {
+                    cur.type |= RiverBoundsType.BeginPoint;
+                    cur.type &= ~RiverBoundsType.EndPoint;
+
+                }else
+                {
+                    cur.type |= RiverBoundsType.EndPoint;
+                    cur.type &= ~RiverBoundsType.BeginPoint;
+                }
+
+            }else//branch
+            {
+                if( isBeginColor(cur.cor))
+                {
+                    cur.type |= RiverBoundsType.BeginPoint;
+                    cur.type &= ~RiverBoundsType.EndPoint;
+                }
+                else if (isEndColor(cur.cor))
+                {
+                    cur.type |= RiverBoundsType.EndPoint;
+                    cur.type &= ~RiverBoundsType.BeginPoint;
+                }else
+                {
+                    if( (cur.type & RiverBoundsType.Out) !=0)
+                    {
+                        cur.type |= RiverBoundsType.EndPoint;
+                        cur.type &= ~RiverBoundsType.BeginPoint;
+                    }else
+                    {
+                        cur.type |= RiverBoundsType.BeginPoint;
+                        cur.type &= ~RiverBoundsType.EndPoint;
+                    }
+
+                    
+                }
+            }
+
+
+
+        }
+
+
         SearchRiver((bounds) =>
         {
             bounds.GenWidthModify();
         });
 
-        for(int i=0,iMax = kOrigins.Count; i < iMax; ++i)
+        int begincount = 0;
+        int EndCount = 0;
+
+        SearchRiver((bounds) =>
+        {
+            var type = bounds.type;
+            var bBegin = (type & RiverBoundsType.BeginPoint) != 0;
+            var bEnd = (type & RiverBoundsType.EndPoint) != 0;
+
+            var bMain = (type & RiverBoundsType.Main) != 0;
+            var bBranch = (type & RiverBoundsType.Branch) != 0;
+
+            var bIn = (type & RiverBoundsType.In) != 0;
+            var bOut = (type & RiverBoundsType.Out) != 0;
+
+            if(bBegin)
+            {
+                ++begincount;
+            }
+            if(bEnd)
+            {
+                ++EndCount;
+            }
+
+            if((bBegin ==true) && (bEnd == true))
+            {
+                Debug.Log("Begin == End " + index);
+            }
+
+            if(bMain == bBranch)
+            {
+                Debug.Log("Main == Branch " + index);
+            }
+
+            if(bIn == bOut)
+            {
+                Debug.Log("In == Out " + index);
+            }
+
+
+        });
+
+        if(begincount != EndCount)
+        {
+            Debug.Log("[s : " + begincount + "] [e :" + EndCount + "] index : " + index);
+        }
+
+
+        for (int i=0,iMax = kOrigins.Count; i < iMax; ++i)
         {
             var ori = kOrigins[i];
             if((ori.type & RiverBoundsType.BeginPoint) != 0)
@@ -494,36 +646,48 @@ public class RiverData{
                 var cur = ori;
                 Direction predir = Direction.NotExist;
                 Bounds preb = null;
-                while(cur != null)
-                {
-                    if( cur.IsBeginOrEnd() && cur != ori)
-                    {
-                        break;
-                    }
 
+                //如果当前值不是End节点
+                while ( (cur !=null) && (cur.type & RiverBoundsType.EndPoint) == 0)
+                {
                     bool bfind = false;
+
+                    var curbMain = (cur.type & RiverBoundsType.Main) != 0;
+                    var curbBranch = (cur.type & RiverBoundsType.Branch) != 0;
 
                     for (Direction dir = Direction.Begin; dir <= Direction.End; ++dir)
                     {
                         var next = cur.GetLink(dir);
                         if(next != null && next != preb)
                         {
-                            preb = cur;
-                            cur.flowDir = dir;
-                            predir = dir;
-                            cur = next;
-                            bfind = true;
-                            break;
+                            var nextbMain = (next.type & RiverBoundsType.Main) != 0;
+                            var nextbBranch = (next.type & RiverBoundsType.Branch) != 0;
+
+                            if ((curbMain == nextbMain) && (curbBranch == nextbBranch))
+                            {
+                                bfind = true;
+
+                                predir = dir;
+                                cur.flowDir = dir;
+                                preb = cur;
+
+                                cur = next;
+                            }
                         }
                     }
 
-                    if(!bfind)
+                    if( bfind)
+                    {
+                        
+
+                    }else
                     {
                         cur.flowDir = predir;
                         cur = null;
                     }
 
-                    
+
+
                 }
             }
         }

@@ -27,6 +27,11 @@ public class RiverCell : MonoBehaviour {
 
     private List<Vector3> kBoundsPoints;
     private RiverData.Bounds kCurE, kPre;
+    private RiverData.Direction kPreDir = RiverData.Direction.NotExist;
+
+    private int beginCount;
+    private int endCount;
+    private bool bshowLog = false;
 
     public void Gen(RiverData data)
     {
@@ -37,23 +42,79 @@ public class RiverCell : MonoBehaviour {
         kBoundsPoints = new List<Vector3>();
 
         verticesOffset = 0;
+        beginCount = 0;
+        endCount = 0;
 
-        for (int i =0,iMax = data.kOrigins.Count; i<iMax; ++i)
+        //GenFromOld(data);
+        GenFromNew(data);
+
+        if(beginCount != endCount)
         {
-           
+            bshowLog = true;
+            Debug.Log("Begin : " + beginCount + " EndCount : " + endCount);
+
+            Dictionary<Color, int> cs = new Dictionary<Color, int>();
+
+            data.SearchRiver((bounds) =>
+            {
+                if((bounds.type & RiverData.RiverBoundsType.BeginPoint) !=0
+                || (bounds.type & RiverData.RiverBoundsType.EndPoint) != 0)
+                {
+                    var cor = bounds.cor;
+
+                    int count = 0;
+                    if (cs.TryGetValue(cor, out count))
+                    {
+                        cs[cor] = count + 1;
+                    }
+                    else
+                    {
+                        cs.Add(cor, 1);
+                    }
+                }
+            });
+
+            foreach(var coc in cs)
+            {
+                Debug.Log("color : " + coc.Key + " has count : " + coc.Value);
+            }
+        }
+
+        
+    }
+
+    private void GenFromOld(RiverData data)
+    {
+        List<RiverData.Bounds> cached = new List<RiverData.Bounds>();
+        Dictionary<RiverData.Bounds, int> gened = new Dictionary<RiverData.Bounds, int>();
+
+        cached.Add(data.kOrigin);
+
+        while (cached.Count > 0)
+        {
+            GenBounds(cached, gened, ref verticesOffset);
+        }
+    }
+
+    private void GenFromNew(RiverData data)
+    {
+        for (int i = 0, iMax = data.kOrigins.Count; i < iMax; ++i)
+        {
+
             var river = data.kOrigins[i];
-            if((river.type & RiverData.RiverBoundsType.BeginPoint) !=0)
+            if ((river.type & RiverData.RiverBoundsType.EndPoint) == 0)
             {
                 kCurE = river;
                 kPre = null;
 
-                while(kCurE != null)
+                while (kCurE != null)
                 {
                     GenFromOriginBounds(kCurE, kPre);
                 }
             }
         }
     }
+
 
     public void Apply()
     {
@@ -62,15 +123,37 @@ public class RiverCell : MonoBehaviour {
         kMesh.SetUVs(0, uvs);
         kMesh.SetTriangles(triangles, 0);
 
-        Debug.Log("vertices cout " + vertices.Count);
+        if(bshowLog)
+        {
+            Debug.Log("vertices cout " + vertices.Count + " " + this.name);
+        }
     }
 
     private void GenFromOriginBounds(RiverData.Bounds kCur, RiverData.Bounds before)
     {
         if(kCur == null)
         {
-
             Debug.Log("CC");
+        }
+
+        if(kCur.bHasGend)
+        {
+            kPre = kCurE;
+            kCurE = null;
+            Debug.Log("HasGened " + kCur.pos + " before is " + before);
+
+            return;
+        }
+
+        kCur.bHasGend = true;
+
+        var dir = kCur.flowDir;
+        if( kCur.flowDir == RiverData.Direction.NotExist)
+        {
+            return;
+        }else
+        {
+            kPreDir = dir;
         }
 
         if (before == null)// 这是原点
@@ -118,20 +201,15 @@ public class RiverCell : MonoBehaviour {
         }
         else
         {
-            var dir = kCur.flowDir;
-            var nextb = kCur.GetLink(kCur.flowDir);
-            if(nextb == null)
-            {
-                dir = before.flowDir;
-            }
+            //var dir = kCur.flowDir;
 
             float centerx = kCur.pos.x + 0.5f;
             float centerz = kCur.pos.z + 0.5f;
 
             Vector3 center = new Vector3(centerx, 0, centerz);
 
-            var borderleft = BorderLeft(center, kCur.flowDir);
-            var borderright = BorderRight(center, kCur.flowDir);
+            var borderleft = BorderLeft(center, dir);
+            var borderright = BorderRight(center, dir);
 
             var downl = kBoundsPoints[0];
             var downr = kBoundsPoints[1];
@@ -356,29 +434,59 @@ public class RiverCell : MonoBehaviour {
 
             Color a = Color.black;
 
-            if((tar.type & (RiverData.RiverBoundsType.BeginPoint |
-                RiverData.RiverBoundsType.EndPoint)) != 0)
+            if((tar.type & RiverData.RiverBoundsType.BeginPoint)!=0)
             {
-                a = tar.cor *  ( 1.0f -  Mathf.Clamp( tar.widthModify , 1f, 50.0f) / 50f) ;
-                
-            }else if( (tar.type & RiverData.RiverBoundsType.Main) != 0)
+                ++beginCount;
+            }
+            if( (tar.type & RiverData.RiverBoundsType.EndPoint) !=0)
             {
-                a = Color.white * (1.0f - Mathf.Clamp(tar.widthModify, 1f, 50.0f) / 50f);
+                ++endCount;
+            }
 
+            //if((tar.type & (RiverData.RiverBoundsType.BeginPoint |
+            //  RiverData.RiverBoundsType.EndPoint)) != 0)
+            //if ((tar.type & RiverData.RiverBoundsType.BeginPoint) !=0)
+            //{
+            //    a = tar.cor *  ( 1.0f -  Mathf.Clamp( tar.widthModify , 1f, 50.0f) / 50f)  
+            //    a = Color.white;
+
+            //}else if((tar.type & RiverData.RiverBoundsType.EndPoint) != 0)
+            //{
+            //    a = Color.black;
+            //}else
+            //{
+            //    a = Color.blue;
+            //}
+
+            if((tar.type & RiverData.RiverBoundsType.Main) != 0)
+            {
+                a = Color.white;
+            }else if( (tar.type & RiverData.RiverBoundsType.Branch) != 0)
+            {
+                a = Color.black;
             }else
             {
-                if( (tar.type & RiverData.RiverBoundsType.In) != 0)
-                {
-                    a = Color.blue * (1.0f - Mathf.Clamp(tar.widthModify, 1f, 50.0f) / 50f);
-                }
-                else
-                {
-                    a = Color.yellow * (1.0f - Mathf.Clamp(tar.widthModify, 1f, 50.0f) / 50f);
-                }
+                a = Color.red;
+            }
+
+            //else if( (tar.type & RiverData.RiverBoundsType.Main) != 0)
+            //{
+            //    a = Color.white * (1.0f - Mathf.Clamp(tar.widthModify, 1f, 50.0f) / 50f);
+
+            //}else
+            //{
+            //    if( (tar.type & RiverData.RiverBoundsType.In) != 0)
+            //    {
+            //        a = Color.blue * (1.0f - Mathf.Clamp(tar.widthModify, 1f, 50.0f) / 50f);
+            //    }
+            //    else
+            //    {
+            //        a = Color.yellow * (1.0f - Mathf.Clamp(tar.widthModify, 1f, 50.0f) / 50f);
+            //    }
 
                 
 
-            }
+            //}
 
             colors.Add(a);
             colors.Add(a);

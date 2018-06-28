@@ -12,7 +12,8 @@ public class RiverCell : MonoBehaviour {
     public Texture2D kRiverMap;
     public Texture2D kNoiseMap;
 
-    public float kNoisePercent = 0.1f;
+    public float kNoisePercent = 1f;
+    public float kRiverPercent = 0.8f;
 
     [NonSerialized] public List<Vector3> vertices;
     [NonSerialized] public List<Color> colors;
@@ -107,7 +108,7 @@ public class RiverCell : MonoBehaviour {
                 kCurE = river;
                 kPre = null;
 
-                while (kCurE != null)
+                while (kCurE != null && (kCurE.type & RiverData.RiverBoundsType.EndPoint) == 0)
                 {
                     GenFromOriginBounds(kCurE, kPre);
                 }
@@ -136,25 +137,47 @@ public class RiverCell : MonoBehaviour {
             Debug.Log("CC");
         }
 
-        if(kCur.bHasGend)
+        Color a = Color.black;
+
+        if (kCur.bHasGend)
         {
             kPre = kCurE;
             kCurE = null;
             Debug.Log("HasGened " + kCur.pos + " before is " + before);
+
+            a = Color.red;
+            var index = (int)kCur.widthModify;
+
+            colors[index] = a;
+            colors[index + 1] = a;
+            colors[index + 2] = a;
+            colors[index + 3] = a;
+
 
             return;
         }
 
         kCur.bHasGend = true;
 
+       
         var dir = kCur.flowDir;
+
         if( kCur.flowDir == RiverData.Direction.NotExist)
         {
+
+            Debug.Log("Not exist " + kCur.pos);
+            kCurE = null;
+
             return;
         }else
         {
             kPreDir = dir;
         }
+
+        colors.Add(a);
+        colors.Add(a);
+        colors.Add(a);
+        colors.Add(a);
 
         if (before == null)// 这是原点
         {
@@ -173,8 +196,8 @@ public class RiverCell : MonoBehaviour {
 
                 var mid = ModifyVector(LerpPos(downleft, downRight, 0.5f));
 
-                var l = ModifyVector(LerpPos(borderleft, borderright, 1 - kNoisePercent));
-                var r = ModifyVector(LerpPos(borderright, borderleft, 1 - kNoisePercent));
+                var l = ModifyVector(LerpPos(borderleft, borderright, kRiverPercent));
+                var r = ModifyVector(LerpPos(borderright, borderleft, kRiverPercent));
 
                 kBoundsPoints.Clear();
                 kBoundsPoints.Add(l);
@@ -192,7 +215,11 @@ public class RiverCell : MonoBehaviour {
                 triangles.Add(verticesOffset + 3);
                 triangles.Add(verticesOffset + 0);
 
+                kCur.widthModify = verticesOffset;
+
                 verticesOffset += 4;
+
+                
 
 
 
@@ -214,8 +241,8 @@ public class RiverCell : MonoBehaviour {
             var downl = kBoundsPoints[0];
             var downr = kBoundsPoints[1];
 
-            var l = ModifyVector(LerpPos(borderleft, borderright, 1 - kNoisePercent));
-            var r = ModifyVector(LerpPos(borderright, borderleft, 1 - kNoisePercent));
+            var l = ModifyVector(LerpPos(borderleft, borderright, kRiverPercent));
+            var r = ModifyVector(LerpPos(borderright, borderleft, kRiverPercent));
 
             kBoundsPoints.Clear();
             kBoundsPoints.Add(l);
@@ -232,6 +259,9 @@ public class RiverCell : MonoBehaviour {
             triangles.Add(verticesOffset + 2);
             triangles.Add(verticesOffset + 3);
             triangles.Add(verticesOffset + 0);
+
+            kCur.widthModify = verticesOffset;
+
 
             verticesOffset += 4;
         }
@@ -355,11 +385,11 @@ public class RiverCell : MonoBehaviour {
     private Vector3 NoiseModify(Vector3 kOri)
     {
         Vector3 result = kOri;
-        int x = (int)result.x % kNoiseMap.width;
-        int z = (int)result.z & kNoiseMap.height;
+        int x = ((int)(result.x * 11)) % kNoiseMap.width;
+        int z = ((int)(result.z * 4)) % kNoiseMap.height;
 
-        float xx = kNoiseMap.GetPixel(x, z).r * kNoisePercent;
-        float zz = kNoiseMap.GetPixel(x, z).r * kNoisePercent;
+        float xx = (kNoiseMap.GetPixel(x, z).r * 2 - 1) * kNoisePercent;
+        float zz = (kNoiseMap.GetPixel(x, z).r * 2 - 1) * kNoisePercent;
         result.x += xx;
         result.z += zz;
 
@@ -458,15 +488,15 @@ public class RiverCell : MonoBehaviour {
             //    a = Color.blue;
             //}
 
-            if((tar.type & RiverData.RiverBoundsType.Main) != 0)
+            if((tar.type & RiverData.RiverBoundsType.BeginPoint) != 0)
             {
                 a = Color.white;
-            }else if( (tar.type & RiverData.RiverBoundsType.Branch) != 0)
-            {
-                a = Color.black;
-            }else
+            }else if( (tar.type & RiverData.RiverBoundsType.EndPoint) != 0)
             {
                 a = Color.red;
+            }else
+            {
+                a = Color.black;
             }
 
             //else if( (tar.type & RiverData.RiverBoundsType.Main) != 0)

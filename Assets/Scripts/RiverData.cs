@@ -150,7 +150,7 @@ public class RiverData{
         public Bounds down;
         public RiverBoundsType type;
 
-        public Direction flowDir;
+        public Direction flowDir = Direction.NotExist;
         public float widthModify;
 
         public bool bHasGend = false;
@@ -160,7 +160,7 @@ public class RiverData{
         {
             pos = a;
             cor = col;
-            
+            bHasGend = false;
             widthModify = 0.0f;
         }
 
@@ -357,6 +357,22 @@ public class RiverData{
             }
 
             return widthModify;
+        }
+
+        public int LinkCount()
+        {
+            int linkCount = 0;
+
+            for(Direction dir = Direction.Begin; dir <= Direction.End; ++dir)
+            {
+                var next = GetLink(dir);
+                if(next !=null)
+                {
+                    ++linkCount;
+                }
+            }
+
+            return linkCount;
         }
         
     }
@@ -650,10 +666,19 @@ public class RiverData{
                 //如果当前值不是End节点
                 while ( (cur !=null) && (cur.type & RiverBoundsType.EndPoint) == 0)
                 {
-                    bool bfind = false;
+                    bool bStart = (cur.type & RiverBoundsType.BeginPoint) != 0;
 
+                    if(bStart && cur != ori)
+                    {
+                        Debug.Log("Find break");
+                        break;
+                    }
+                    
                     var curbMain = (cur.type & RiverBoundsType.Main) != 0;
                     var curbBranch = (cur.type & RiverBoundsType.Branch) != 0;
+
+                    List<Bounds> temp = new List<Bounds>();
+                    List<Direction> tempdir = new List<Direction>();
 
                     for (Direction dir = Direction.Begin; dir <= Direction.End; ++dir)
                     {
@@ -663,24 +688,59 @@ public class RiverData{
                             var nextbMain = (next.type & RiverBoundsType.Main) != 0;
                             var nextbBranch = (next.type & RiverBoundsType.Branch) != 0;
 
-                            if ((curbMain == nextbMain) && (curbBranch == nextbBranch))
+                            bool bEnd = (next.type & RiverBoundsType.EndPoint) != 0;
+                            bool bBegin = (next.type & RiverBoundsType.BeginPoint) != 0;
+
+                            //if(!bBegin & !bEnd)
+                            if ((curbMain == nextbMain) && (curbBranch == nextbBranch) && !bEnd && !bBegin)
                             {
-                                bfind = true;
-
-                                predir = dir;
-                                cur.flowDir = dir;
-                                preb = cur;
-
-                                cur = next;
+                                temp.Add(next);
+                                tempdir.Add(dir);
                             }
                         }
                     }
 
-                    if( bfind)
+                    if(temp.Count > 0)
                     {
-                        
+                        if (temp.Count > 1)
+                        {
+                            int tempindex = -1;
+                            int min = int.MaxValue;
 
-                    }else
+                            for (int j = 0, jMax = temp.Count; j < jMax; ++j)
+                            {
+                                var a = temp[j];
+                                var linkcount = a.LinkCount();
+
+                                if (linkcount < min)
+                                {
+                                    tempindex = j;
+                                    min = linkcount;
+                                }
+
+                            }
+
+                            predir = tempdir[tempindex];
+                            cur.flowDir = predir;
+                            preb = cur;
+
+                            cur = temp[tempindex];
+
+
+                        }
+                        else if (temp.Count == 1)
+                        {
+
+                            int tempindex = 0;
+
+                            predir = tempdir[tempindex];
+                            cur.flowDir = predir;
+                            preb = cur;
+
+                            cur = temp[tempindex];
+                        }
+                    }
+                    else
                     {
                         cur.flowDir = predir;
                         cur = null;

@@ -15,6 +15,11 @@ public class RiverCell : MonoBehaviour {
     public float kNoisePercent = 1f;
     public float kRiverPercent = 0.8f;
 
+    public float kxModify = 0.2f;
+    public float kzModify = 0.2f;
+
+    public int BoundsCount = 0;
+
     [NonSerialized] public List<Vector3> vertices;
     [NonSerialized] public List<Color> colors;
     [NonSerialized] public List<Vector2> uvs;
@@ -47,9 +52,10 @@ public class RiverCell : MonoBehaviour {
         endCount = 0;
 
         //GenFromOld(data);
-        GenFromNew(data);
+        //GenFromNew(data);
+        GenFromNewEx(data);
 
-        if(beginCount != endCount)
+        if (beginCount != endCount)
         {
             bshowLog = true;
             Debug.Log("Begin : " + beginCount + " EndCount : " + endCount);
@@ -116,6 +122,35 @@ public class RiverCell : MonoBehaviour {
         }
     }
 
+    private void GenFromNewEx(RiverData data)
+    {
+        List<Vector3> centerpoints = new List<Vector3>();
+
+        BoundsCount = 0;
+
+        for (int i =0,iMax = data.kOrigins.Count; i < iMax; ++i)
+        {
+            var river = data.kOrigins[i];
+
+            if( (river.type & RiverData.RiverBoundsType.BeginPoint) !=0)
+            {
+                centerpoints.Clear();
+
+                GenCenter(river, centerpoints);
+                BoundsCount += centerpoints.Count;
+                GenFromCenter(centerpoints);
+
+
+            }
+            
+
+        }
+
+
+
+
+
+    }
 
     public void Apply()
     {
@@ -272,6 +307,115 @@ public class RiverCell : MonoBehaviour {
         
     }
 
+    private void GenCenter(RiverData.Bounds kCur , List<Vector3> kCenterPoints)
+    {
+        while(kCur != null && (kCur.type & RiverData.RiverBoundsType.EndPoint) ==0)
+        {
+            var center = CenterPos(kCur.pos);
+            kCenterPoints.Add(center);
+
+            kCur = kCur.GetLink(kCur.flowDir);
+
+        }
+
+    }
+
+    private void GenFromCenter(List<Vector3> kCenterPoints)
+    {
+        List<Vector3> Modifyer = new List<Vector3>();
+
+        LC_Helper.Loop(kCenterPoints.Count, (i)=>{
+
+            var tar = kCenterPoints[i];
+
+            Modifyer.Add(new Vector3(tar.x, tar.y, tar.z));
+
+        });
+
+        for(int i = 1,iMax = kCenterPoints.Count; i < iMax; ++i)
+        {
+            var target = kCenterPoints[i];
+
+            var preindex = i - 1;
+
+            var pre = kCenterPoints[i - 1];
+
+            var deltax = target.x - pre.x;
+            var deltaz = target.z - pre.z;
+
+            for (int j = preindex; j >= 0; --j)
+            {
+                deltax *= kxModify;
+                deltaz *= kzModify;
+
+                var temptarget = Modifyer[j];
+
+                //temptarget.x += deltax;
+                //temptarget.z += deltaz;
+
+                //Modifyer[j] = new Vector3(temptarget.x, temptarget.y, temptarget.z);
+
+            }
+        }
+
+
+        for (int i = 0, iMax = Modifyer.Count-1; i < iMax; ++i)
+        {
+            var target = Modifyer[i];
+            var next = Modifyer[i + 1];
+
+            var curupdir = NorDir(i, Modifyer);
+            var nextdir = NorDir(i + 1, Modifyer);
+
+            if( curupdir.magnitude < 0.99 || nextdir.magnitude < 0.99)
+            {
+                Debug.Log("Error Dir");
+            }
+            
+
+            if(Vector3.Dot(curupdir, nextdir) < 0)
+            {
+                var zero = target + curupdir * 0.5f;
+                var one = target - curupdir * 0.5f;
+
+                var second = next - nextdir * 0.5f;
+                var third = next + nextdir * 0.5f;
+
+                vertices.Add(zero);
+                vertices.Add(one);
+                vertices.Add(second);
+                vertices.Add(third);
+
+            }
+            else
+            {
+                var zero = target + curupdir * 0.5f;
+                var one = target - curupdir * 0.5f;
+
+                var second = next + nextdir * 0.5f;
+                var third = next - nextdir * 0.5f;
+
+                vertices.Add(zero);
+                vertices.Add(one);
+                vertices.Add(second);
+                vertices.Add(third);
+            }
+
+            triangles.Add(verticesOffset + 0);
+            triangles.Add(verticesOffset + 2);
+            triangles.Add(verticesOffset + 3);
+            triangles.Add(verticesOffset + 3);
+            triangles.Add(verticesOffset + 1);
+            triangles.Add(verticesOffset + 0);
+
+            verticesOffset += 4;
+
+
+        };
+
+      
+
+    }
 
     private Vector3 BorderLeft(Vector3 center, RiverData.Direction dir)
     {
@@ -374,6 +518,17 @@ public class RiverCell : MonoBehaviour {
         return result;
     }
 
+    private Vector3 CenterPos(Vector3 leftdown)
+    {
+        Vector3 result = new Vector3();
+
+        result.x = leftdown.x + 0.5f;
+        result.y = leftdown.y;
+        result.z = leftdown.z + 0.5f;
+
+        return result;
+    }
+
     private Vector3 LerpPos(Vector3 Begin, Vector3 End, float range)
     {
         Vector3 result = new Vector3();
@@ -398,7 +553,7 @@ public class RiverCell : MonoBehaviour {
     private Vector3 HeightSample(Vector3 kOri)
     {
         Vector3 result = kOri;
-        result.y = kHeightMap.GetPixel((int)kOri.x, (int)kOri.z).a * ConfigParam.BLOCKHEIGHT + 1;
+        result.y = kHeightMap.GetPixel((int)kOri.x, (int)kOri.z).a * ConfigParam.BLOCKHEIGHT + 0.01f;
         return result;
     }
     private Vector3 ModifyVector(Vector3 kOri)
@@ -406,6 +561,93 @@ public class RiverCell : MonoBehaviour {
         return HeightSample(NoiseModify(kOri));
     }
 
+    private Vector3 NorDir(int index, List<Vector3> lists)
+    {
+        Vector3 result = Vector3.up;
+        if(index == 0)
+        {
+            var cur = lists[index];
+            var next = lists[index + 1];
+            
+            if(cur.x < next.x)
+            {
+                result = Vector3.forward;
+
+            }else if( cur.x > next.x)
+            {
+                result = Vector3.back;
+
+            }else if (cur.z < next.z)
+            {
+                result = Vector3.left;
+            }else if( cur.z > next.z)
+            {
+                result = Vector3.right;
+            }
+
+        }else if ( index == lists.Count -1)
+        {
+            var cur = lists[index-1];
+            var next = lists[index];
+
+            if (cur.x < next.x)
+            {
+                result = Vector3.forward;
+
+            }
+            else if (cur.x > next.x)
+            {
+                result = Vector3.back;
+
+            }
+            else if (cur.z < next.z)
+            {
+                result = Vector3.left;
+            }
+            else if (cur.z > next.z)
+            {
+                result = Vector3.right;
+            }
+
+
+        }
+        else
+        {
+            var cur = lists[index];
+            var before = lists[index - 1];
+            var next = lists[index + 1];
+
+            var mid = LerpPos(before, next, 0.5f);
+
+            result = (mid - cur).normalized;
+
+            if( result.magnitude < 0.99f)
+            {
+                if (cur.x < next.x)
+                {
+                    result = Vector3.forward;
+
+                }
+                else if (cur.x > next.x)
+                {
+                    result = Vector3.back;
+
+                }
+                else if (cur.z < next.z)
+                {
+                    result = Vector3.left;
+                }
+                else if (cur.z > next.z)
+                {
+                    result = Vector3.right;
+                }
+            }
+
+        }
+
+
+        return result;
+    }
 
     private void GenBounds(List<RiverData.Bounds> cached, Dictionary<RiverData.Bounds, int> gened, ref int verticesoffset)
     {

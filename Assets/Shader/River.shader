@@ -69,5 +69,53 @@ Shader "X4/River"
 			}
 			ENDCG
 		}
+
+		Pass
+		{
+			Cull front
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+			#include "UnityCG.cginc"
+
+			
+
+			struct appdata
+			{
+				float4 vertex : POSITION;
+				float2 uv : TEXCOORD0;
+				float3 cor : COLOR;
+			};
+
+			struct v2f
+			{
+				float2 uv : TEXCOORD0;
+				float3 cor : TEXCOORD1;
+				float4 vertex : SV_POSITION;
+			};
+
+			v2f vert (appdata v)
+			{
+				v2f o;
+				o.vertex = UnityObjectToClipPos(v.vertex);
+				o.cor = v.cor;
+				o.uv = v.uv;
+
+				return o;
+			}
+			
+			fixed4 frag (v2f i) : SV_Target
+			{
+				//return 1;
+				// sample the texture
+				//fixed4 col = tex2D(_MainTex, i.uv);
+				// apply fog
+				//UNITY_APPLY_FOG(i.fogCoord, col);
+				//fixed4 col = fixed4(i.cor, 1);
+
+				return 0;
+			}
+			ENDCG
+		}
 	}
 }

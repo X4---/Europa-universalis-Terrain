@@ -91,11 +91,7 @@ Shader "X4/River"
 				//world pos
 				Out.vPrePos_Fade.xyz = vTmpPos.xyz;
 			
-				Out.vUV.x = (  v.vPosition.x + 0.5f ) / MAP_SIZE_X;
-				Out.vUV.y =	(  v.vPosition.z + 0.5f ) / MAP_SIZE_Y;
-
-
-				//Out.vUV.yx = v.vUV_Tangent.xy;
+				Out.vUV.yx = v.vUV_Tangent.xy;
 				Out.vUV.x += vTimeDirectionSeasonLerp.x * 1.0f * vTimeDirectionSeasonLerp.y;
 				Out.vUV.y += vTimeDirectionSeasonLerp.x * 0.2f;
 				Out.vUV.x *= 0.05f;
@@ -126,7 +122,7 @@ Shader "X4/River"
 			{
 				float4 vFoWColor = GetFoWColor( In.vPrePos_Fade.xyz, FoWTexture);
 				float TI = GetTI( vFoWColor );	
-				//clip( 0.99f - TI );
+				clip( 0.99f - TI );
 			
 				float4 vWaterSurface = tex2D( DiffuseMap, float2( In.vUV.x, In.vUV.w ) );
 				float3 vHeightNormal = normalize( tex2D( HeightNormal, In.vWorldUV_Tangent.xy ).rbg - 0.5f );
@@ -176,7 +172,7 @@ Shader "X4/River"
 				// Grab the shadow term
 				//float fShadowTerm = GetShadowScaled( SHADOW_WEIGHT_RIVER, In.vScreenCoord, ShadowMap );		
 				//vColor *= fShadowTerm;	
-			
+				return fixed4(vColor,1);
 				//vColor = ApplyDistanceFog( vColor, In.vPrePos_Fade.xyz ) * vFoW;
 				return float4( ComposeSpecular( vColor, specular * ( 1.0f - In.vPrePos_Fade.w ) * vWaterSurface.a * vFoW ), vBottomAlpha * ( 1.0f - In.vPrePos_Fade.w ) * (1.0f - TI ) );
 

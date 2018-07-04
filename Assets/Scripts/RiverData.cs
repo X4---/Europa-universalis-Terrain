@@ -151,7 +151,9 @@ public class RiverData{
         public RiverBoundsType type;
 
         public Direction flowDir = Direction.NotExist;
+        public Vector3 kflowDirEx;
         public float widthModify;
+        public float diffModify;
 
         public bool bHasGend = false;
 
@@ -374,6 +376,13 @@ public class RiverData{
 
             return linkCount;
         }
+
+        public Bounds GetNext()
+        {
+            Bounds result = null;
+            result = GetLink(flowDir);
+            return result;
+        }
         
     }
 
@@ -387,8 +396,45 @@ public class RiverData{
         Left = 3,
         Begin = Up,
         End = Left,
+        Count = 4,
     }
     
+    public static Direction GetTargetDirsDir(Direction target, Direction dir)
+    {
+        Direction result = Direction.NotExist;
+        result = (Direction)(((int)target + (int)dir) % (int)Direction.Count);
+        return result;
+    }
+
+    public static Direction ThisDirisOrisDirsDir(Direction target, Direction ori)
+    {
+        Direction result = Direction.NotExist;
+        var a = (int)target + (int)Direction.Count;
+        result = (Direction)((a - (int)ori) % (int)Direction.Count);
+        return result;
+    }
+
+    public static Vector3 GetDirectionDir(Direction dir)
+    {
+        Vector3 result = Vector3.zero;
+        switch(dir)
+        {
+            case Direction.Up:
+                result = Vector3.forward;
+                break;
+            case Direction.Right:
+                result = Vector3.right;
+                break;
+            case Direction.Down:
+                result = Vector3.back;
+                break;
+            case Direction.Left:
+                result = Vector3.left;
+                break;
+        }
+        return result;
+    }
+
     public Bounds kOrigin;
 
     public List<Bounds> kOrigins = new List<Bounds>();
@@ -722,6 +768,7 @@ public class RiverData{
 
                             predir = tempdir[tempindex];
                             cur.flowDir = predir;
+                            cur.kflowDirEx = GetDirectionDir(cur.flowDir);
                             preb = cur;
 
                             cur = temp[tempindex];
@@ -730,11 +777,11 @@ public class RiverData{
                         }
                         else if (temp.Count == 1)
                         {
-
                             int tempindex = 0;
 
                             predir = tempdir[tempindex];
                             cur.flowDir = predir;
+                            cur.kflowDirEx = GetDirectionDir(cur.flowDir);
                             preb = cur;
 
                             cur = temp[tempindex];
@@ -743,6 +790,7 @@ public class RiverData{
                     else
                     {
                         cur.flowDir = predir;
+                        cur.kflowDirEx = GetDirectionDir(cur.flowDir);
                         cur = null;
                     }
 

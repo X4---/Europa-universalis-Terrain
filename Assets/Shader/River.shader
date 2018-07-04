@@ -113,7 +113,7 @@ Shader "X4/River"
 				//UNITY_APPLY_FOG(i.fogCoord, col);
 				//fixed4 col = fixed4(i.cor, 1);
 
-				return 0;
+				return fixed4(1,0,0,1);
 			}
 			ENDCG
 		}

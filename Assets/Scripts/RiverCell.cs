@@ -881,7 +881,7 @@ public class RiverCell : MonoBehaviour {
     private Vector3 HeightSample(Vector3 kOri)
     {
         Vector3 result = kOri;
-        result.y = kHeightMap.GetPixel((int)kOri.x, (int)kOri.z).a * ConfigParam.BLOCKHEIGHT + 1.0f;
+        result.y = kHeightMap.GetPixel((int)kOri.x, (int)kOri.z).a * ConfigParam.BLOCKHEIGHT + 1f;
         return result;
     }
     private Vector3 ModifyVector(Vector3 kOri)

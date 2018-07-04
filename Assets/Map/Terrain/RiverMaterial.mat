@@ -18,6 +18,42 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - ColorOverlay:
+        m_Texture: {fileID: 2800000, guid: 9762b42c101a6b74d96c176953ddaddf, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - ColorOverlaySecond:
+        m_Texture: {fileID: 2800000, guid: 563c162f612ffc643a2e9f11d98dbe2b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - DiffuseBottomMap:
+        m_Texture: {fileID: 2800000, guid: c3d14299d3dedaa42a654f45e56ea167, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - DiffuseMap:
+        m_Texture: {fileID: 2800000, guid: 7a68e6ad6e945ce49b05f24113ced804, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - FoWDiffuse:
+        m_Texture: {fileID: 2800000, guid: effde089d97a2b044b9baecc0836edae, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - FoWTexture:
+        m_Texture: {fileID: 2800000, guid: dc80ad626e48a504fa44df7eb3471fc6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - HeightNormal:
+        m_Texture: {fileID: 2800000, guid: 3e06dddcd8ee65e43bee1726f47df3fe, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - NormalMap:
+        m_Texture: {fileID: 2800000, guid: 4a5a8633ec930e141833eb5c25000ef7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - SurfaceNormalMap:
+        m_Texture: {fileID: 2800000, guid: 0cae6ab8d57605741b32484615395108, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}

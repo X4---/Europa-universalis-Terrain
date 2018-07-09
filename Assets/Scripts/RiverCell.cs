@@ -24,6 +24,7 @@ public class RiverCell : MonoBehaviour {
     [NonSerialized] public List<Color> colors;
     [NonSerialized] public List<Vector2> uvs;
     [NonSerialized] public List<int> triangles;
+    [NonSerialized] public List<Vector4> tangles;
     
     private int verticesOffset = 0;
     private void Awake()
@@ -48,6 +49,7 @@ public class RiverCell : MonoBehaviour {
         uvs = new List<Vector2>();
         triangles = new List<int>();
         kBoundsPoints = new List<Vector3>();
+        tangles = new List<Vector4>();
 
         verticesOffset = 0;
         beginCount = 0;
@@ -178,6 +180,7 @@ public class RiverCell : MonoBehaviour {
         kMesh.SetColors(colors);
         kMesh.SetUVs(0, uvs);
         kMesh.SetTriangles(triangles, 0);
+        kMesh.SetTangents(tangles);
 
         if(bshowLog)
         {
@@ -500,6 +503,17 @@ public class RiverCell : MonoBehaviour {
         colors.Add(a);
         colors.Add(a);
 
+        uvs.Add(new Vector2(1, 1));
+        uvs.Add(new Vector2(1, 0));
+        uvs.Add(new Vector2(0, 0));
+        uvs.Add(new Vector2(0, 1));
+
+        tangles.Add(new Vector4(1,1,0,0));
+        tangles.Add(new Vector4(1,0,0,0));
+        tangles.Add(new Vector4(0,0,0,0));
+        tangles.Add(new Vector4(0,1,0,0));
+
+
         verticesOffset += 4;
     }
 
@@ -572,6 +586,26 @@ public class RiverCell : MonoBehaviour {
         colors.Add(a);
 
 
+        uvs.Add(new Vector2(1, 1));
+        uvs.Add(new Vector2(1, 0.66f));
+        uvs.Add(new Vector2(1, 0.33f));
+        uvs.Add(new Vector2(1, 0));
+
+        uvs.Add(new Vector2(0, 0));
+        uvs.Add(new Vector2(0, 0.33f));
+        uvs.Add(new Vector2(0, 0.66f));
+        uvs.Add(new Vector2(0, 1));
+
+        tangles.Add(new Vector4(1, 1, 0, 0));
+        tangles.Add(new Vector4(1, 0.66f, 0, 0));
+        tangles.Add(new Vector4(1, 0.33f, 0, 0));
+        tangles.Add(new Vector4(1, 0, 0, 0));
+
+        tangles.Add(new Vector4(0, 0, 0, 0));
+        tangles.Add(new Vector4(0, 0.33f, 0, 0));
+        tangles.Add(new Vector4(0, 0.66f, 0, 0));
+        tangles.Add(new Vector4(0, 1, 0, 0));
+
         verticesOffset += 8;
     }
 
@@ -626,6 +660,26 @@ public class RiverCell : MonoBehaviour {
         colors.Add(a);
         colors.Add(a);
 
+
+        uvs.Add(new Vector2(1, 1));
+        uvs.Add(new Vector2(1, 0.66f));
+        uvs.Add(new Vector2(1, 0.33f));
+        uvs.Add(new Vector2(1, 0));
+
+        uvs.Add(new Vector2(0, 0));
+        uvs.Add(new Vector2(0, 0.33f));
+        uvs.Add(new Vector2(0, 0.66f));
+        uvs.Add(new Vector2(0, 1));
+
+        tangles.Add(new Vector4(1, 1, 0, 0));
+        tangles.Add(new Vector4(1, 0.66f, 0, 0));
+        tangles.Add(new Vector4(1, 0.33f, 0, 0));
+        tangles.Add(new Vector4(1, 0, 0, 0));
+
+        tangles.Add(new Vector4(0, 0, 0, 0));
+        tangles.Add(new Vector4(0, 0.33f, 0, 0));
+        tangles.Add(new Vector4(0, 0.66f, 0, 0));
+        tangles.Add(new Vector4(0, 1, 0, 0));
 
         verticesOffset += 8;
     }

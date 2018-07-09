@@ -40,6 +40,7 @@ Shader "X4/River"
 	{
 		Tags { "RenderType"="Opaque" }
 		LOD 100
+		Blend SrcAlpha OneMinusSrcAlpha
 
 		Pass
 		{
@@ -74,6 +75,7 @@ Shader "X4/River"
 				float4 vPrePos_Fade		: TEXCOORD2;
 				float4 vScreenCoord		: TEXCOORD3;		
 				float2 vSecondaryUV		: TEXCOORD4;
+				float2 testUV : TEXCOORD5;
 			};
 
 			v2f vert (appdata v)
@@ -91,13 +93,19 @@ Shader "X4/River"
 				//world pos
 				Out.vPrePos_Fade.xyz = vTmpPos.xyz;
 			
+				//Out.vUV.yx = float2(1,0);
 				Out.vUV.yx = v.vUV_Tangent.xy;
-				Out.vUV.x += vTimeDirectionSeasonLerp.x * 1.0f * vTimeDirectionSeasonLerp.y;
-				Out.vUV.y += vTimeDirectionSeasonLerp.x * 0.2f;
+
+				float a = _Time.y;
+				float b = 1;
+
+				Out.testUV.yx = v.vUV_Tangent.xy;
+				Out.vUV.x += a * 1.0f * b;
+				Out.vUV.y += a * 0.2f;
 				Out.vUV.x *= 0.05f;
 				Out.vSecondaryUV.yx = v.vUV_Tangent.xy;
-				Out.vSecondaryUV.x += vTimeDirectionSeasonLerp.x * 0.9f * vTimeDirectionSeasonLerp.y;
-				Out.vSecondaryUV.y -= vTimeDirectionSeasonLerp.x * 0.1f;
+				Out.vSecondaryUV.x += a * 0.9f * b;
+				Out.vSecondaryUV.y -= a * 0.1f;
 				Out.vSecondaryUV.x *= 0.05f;
 				Out.vUV.wz = v.vUV_Tangent.xy;
 				Out.vUV.z *= 0.05f;
@@ -120,6 +128,10 @@ Shader "X4/River"
 			
 			fixed4 frag (v2f In) : SV_Target
 			{
+				//return In.vUV.x;
+
+				//return In.testUV.x;
+
 				float4 vFoWColor = GetFoWColor( In.vPrePos_Fade.xyz, FoWTexture);
 				float TI = GetTI( vFoWColor );	
 				clip( 0.99f - TI );
@@ -174,7 +186,7 @@ Shader "X4/River"
 				//vColor *= fShadowTerm;	
 				return fixed4(vColor,1);
 				//vColor = ApplyDistanceFog( vColor, In.vPrePos_Fade.xyz ) * vFoW;
-				return float4( ComposeSpecular( vColor, specular * ( 1.0f - In.vPrePos_Fade.w ) * vWaterSurface.a * vFoW ), vBottomAlpha * ( 1.0f - In.vPrePos_Fade.w ) * (1.0f - TI ) );
+				//return float4( ComposeSpecular( vColor, specular * ( 1.0f - In.vPrePos_Fade.w ) * vWaterSurface.a * vFoW ), vBottomAlpha * ( 1.0f - In.vPrePos_Fade.w ) * (1.0f - TI ) );
 
 				//return 1;
 			}

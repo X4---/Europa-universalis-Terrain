@@ -13,6 +13,7 @@
 			sampler2D OccupationMask;
 			sampler2D ProvinceSecondaryColorMap;
 			sampler2D ProvinceSecondaryColorMapPoint;
+			sampler2D ProvinceColorMap;
 
 
 			const static float MAP_SIZE_X = 5632;

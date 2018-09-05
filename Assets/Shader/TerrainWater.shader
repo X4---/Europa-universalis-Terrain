@@ -61,7 +61,7 @@ Shader "X4/TerrainWater"
 			sampler2D IceDiffuse;
 			sampler2D IceNormal;
 
-			sampler2D ProvinceColorMap;
+			//sampler2D ProvinceColorMap;
 
 			float4 DebugUV;
 

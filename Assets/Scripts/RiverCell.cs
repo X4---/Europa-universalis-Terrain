@@ -59,37 +59,39 @@ public class RiverCell : MonoBehaviour {
         GenFromNew(data);
         //GenFromNewEx(data);
 
-        if (beginCount != endCount)
-        {
-            bshowLog = true;
-            Debug.Log("Begin : " + beginCount + " EndCount : " + endCount);
+        //GenFromBzier(data);
 
-            Dictionary<Color, int> cs = new Dictionary<Color, int>();
+        //if (beginCount != endCount)
+        //{
+        //    bshowLog = true;
+        //    Debug.Log("Begin : " + beginCount + " EndCount : " + endCount);
 
-            data.SearchRiver((bounds) =>
-            {
-                if((bounds.type & RiverData.RiverBoundsType.BeginPoint) !=0
-                || (bounds.type & RiverData.RiverBoundsType.EndPoint) != 0)
-                {
-                    var cor = bounds.cor;
+        //    Dictionary<Color, int> cs = new Dictionary<Color, int>();
 
-                    int count = 0;
-                    if (cs.TryGetValue(cor, out count))
-                    {
-                        cs[cor] = count + 1;
-                    }
-                    else
-                    {
-                        cs.Add(cor, 1);
-                    }
-                }
-            });
+        //    data.SearchRiver((bounds) =>
+        //    {
+        //        if((bounds.type & RiverData.RiverBoundsType.BeginPoint) !=0
+        //        || (bounds.type & RiverData.RiverBoundsType.EndPoint) != 0)
+        //        {
+        //            var cor = bounds.cor;
 
-            foreach(var coc in cs)
-            {
-                Debug.Log("color : " + coc.Key + " has count : " + coc.Value);
-            }
-        }
+        //            int count = 0;
+        //            if (cs.TryGetValue(cor, out count))
+        //            {
+        //                cs[cor] = count + 1;
+        //            }
+        //            else
+        //            {
+        //                cs.Add(cor, 1);
+        //            }
+        //        }
+        //    });
+
+        //    foreach(var coc in cs)
+        //    {
+        //        Debug.Log("color : " + coc.Key + " has count : " + coc.Value);
+        //    }
+        //}
 
         
     }
@@ -172,6 +174,87 @@ public class RiverCell : MonoBehaviour {
 
 
 
+    }
+
+
+    private void GenFromBzier(RiverData data)
+    {
+        List<Vector3> aPoints = new List<Vector3>();
+        List<Vector3> bPoints = new List<Vector3>();
+
+        var cur = data.kOrigin;
+        var next = cur.GetNext();
+
+        var predir = RiverData.Direction.NotExist;
+
+        while(next != null)
+        {
+            var curdir = cur.flowDir;
+
+            GetPointsFromFlowDirAtTwo(predir, curdir, cur.pos, ref aPoints, ref bPoints);
+            
+            predir = curdir;
+            cur = next;
+            next = cur.GetNext();
+        }
+
+    }
+
+    private void GetPointsFromFlowDirAtTwo( RiverData.Direction predir, RiverData.Direction curdir, Vector3 pos, ref List<Vector3> left, ref List<Vector3> right  )
+    {
+        if( predir == curdir || predir == RiverData.Direction.NotExist)
+        {
+            var r1 = PointSDir(pos, curdir, RiverData.GetTargetDirsDir(curdir, RiverData.Direction.Right));
+            var r2 = PointSDir(pos, RiverData.GetTargetDirsDir(curdir, RiverData.Direction.Right), RiverData.GetTargetDirsDir(curdir, RiverData.Direction.Down));
+            var l1 = PointSDir(pos, curdir, RiverData.GetTargetDirsDir(curdir, RiverData.Direction.Left));
+            var l2 = PointSDir(pos, RiverData.GetTargetDirsDir(curdir, RiverData.Direction.Left), RiverData.GetTargetDirsDir(curdir, RiverData.Direction.Down));
+
+            left.Add(l2);
+            left.Add(l1);
+
+            right.Add(r2);
+            right.Add(r1);
+
+        }
+        else
+        {
+            var diffdir = RiverData.ThisDirisOrisDirsDir(curdir, predir);
+
+            switch( diffdir)
+            {
+                case RiverData.Direction.Left:
+                    {
+                        var r1 = PointSDir(pos, curdir, RiverData.GetTargetDirsDir(curdir, RiverData.Direction.Right));
+                        var r2 = PointSDir(pos, curdir, RiverData.GetTargetDirsDir(curdir, RiverData.Direction.Down));
+                        var r3 = PointSDir(pos, curdir, RiverData.GetTargetDirsDir(curdir, RiverData.Direction.Left));
+                        var l1 = PointSDir(pos, curdir, RiverData.GetTargetDirsDir(curdir, RiverData.Direction.Down));
+
+                    }
+                    break;
+                case RiverData.Direction.Right:
+                    {
+                       
+
+                    }
+                    break;
+
+
+            }
+
+        }
+    }
+
+    private Vector3 PointSDir( Vector3 ori, RiverData.Direction a, RiverData.Direction b)
+    {
+        Vector3 result = new Vector3(ori.x, ori.y, ori.z);
+
+        var amodify = RiverData.GetDirectionDir(a);
+        var bmodify = RiverData.GetDirectionDir(b);
+
+        result += amodify / 2;
+        result += bmodify / 2;
+
+        return result;
     }
 
     public void Apply()

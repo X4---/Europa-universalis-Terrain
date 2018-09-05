@@ -4,7 +4,7 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: TerrainMaterial
   m_Shader: {fileID: 4800000, guid: 3dadcf6ecf7c1394797c2bddebdd4c63, type: 3}
@@ -28,6 +28,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - OccupationMask:
         m_Texture: {fileID: 2800000, guid: c1f96f79e13a3d749b4ce1354a73d040, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - ProvinceColorMap:
+        m_Texture: {fileID: 8400000, guid: e8aacdbcbb7051949a72cff49ba8082d, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - ProvinceSecondaryColorMap:
@@ -127,11 +131,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TerrainColorTint:
-        m_Texture: {fileID: 2800000, guid: 3af4a142e284bbe439afc33af0e7bcd9, type: 3}
+        m_Texture: {fileID: 2800000, guid: 9762b42c101a6b74d96c176953ddaddf, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TerrainColorTintSecond:
-        m_Texture: {fileID: 2800000, guid: a7e9037d2796ac04ea5c940d1e32105d, type: 3}
+        m_Texture: {fileID: 2800000, guid: 563c162f612ffc643a2e9f11d98dbe2b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TerrainDiffuse:

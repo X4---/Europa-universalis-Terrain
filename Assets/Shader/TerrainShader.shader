@@ -17,6 +17,7 @@
 		OccupationMask("OccupationMask", 2D) = "white"{}
 		ProvinceSecondaryColorMap("ProvinceSecondaryColorMap", 2D) = "white"{}
 		ProvinceSecondaryColorMapPoint("ProvinceSecondaryColorMapPoint", 2D) = "white"{}
+		ProvinceColorMap("ProvinceColorMap", 2D) = "white"{}
 
 		_TerrainUnderWater("TerrainUnderWater", 2D) = "white"{}
 		_TerrainUnderWaterNoise("TerrainUnderWaterNoise", 2D) = "white"{}
@@ -251,8 +252,11 @@
 					float4 ColorLU = tex2Dlod(_TerrainDiffuse, TerrainSampleY);
 					float4 ColorRU = tex2Dlod(_TerrainDiffuse, TerrainSampleZ);
 
+					//return ColorRD;
+					//return ColorLU;
+					//return ColorRU;
 
-					float2 vFracVector = float2(Input.uv.x * MAP_SIZE_X - 0.5f, Input.uv.y * MAP_SIZE_Y - 0.5f);
+					float2 vFracVector = float2(Input.uv2.x * MAP_SIZE_X - 0.5f, Input.uv2.y * MAP_SIZE_Y - 0.5f);
 					float2 vFrac = frac(vFracVector);
 
 					const float vAlphaFactor = 10.0f;
@@ -290,7 +294,7 @@
 
 				float4 vOut = float4(TerrainColor, 1.0);
 
-				//return vTerrainDiffuseSample;
+				//return float4(vTerrainDiffuseSample.rgb,1);
 				//return vOut;
 				{
 					//高度法向
@@ -311,10 +315,83 @@
 
 				//应用光照
 
+				float2 blendxy = float2( 0.4f, 0.45f);
+
 				float3 result = vTerrainDiffuseSample.rgb;
 
-				return vOut;
+				float4 Pcolor = tex2D(ProvinceColorMap, Input.uv2);
+
+				if( Pcolor.a < 0.5)
+				{
+					return float4( result, 1);
 				}
+
+				float3 testc = dot(result, float3( 0.299, 0.587, 0.114)) * blendxy.x + Pcolor.xyz * blendxy.y;
+
+				return float4(testc,1);
+				}
+			ENDCG
+		}
+
+		Pass
+		{
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+			#include "UnityCG.cginc"
+			#include "TerrainConstant.cginc"
+
+			struct appdata
+			{
+				float4 vertex : POSITION;
+				float2 uv : TEXCOORD0;
+			};
+
+			struct v2f
+			{
+				float2 uv : TEXCOORD0;
+				float2 uv2 : TEXCOORD1;
+				float3 prepos : TEXCOORD2;
+				float4 vertex : SV_POSITION;
+			};
+
+			v2f vert(appdata v)
+			{
+				v2f o;
+				o.vertex = UnityObjectToClipPos(v.vertex + float4(0, 1, 0,0));
+
+				float2 offset = float2(0.5 / MAP_SIZE_X, 0.5 / MAP_SIZE_Y);
+
+				o.uv = v.uv;//+offset;
+				o.uv2 = o.uv;
+
+				o.uv.y = 1 - o.uv.y;
+				o.prepos = mul(unity_ObjectToWorld, v.vertex);
+
+				return o;
+			}
+
+			float4 frag(v2f Input) : SV_Target
+			{
+				discard;
+				float4 Pcolor  = tex2D(ProvinceColorMap, Input.uv2);
+
+				float4 Pcolor0  = tex2D(ProvinceColorMap, Input.uv2 + ( 1,1) * ( 1/ MAP_SIZE_X, 1 /MAP_SIZE_Y));
+				float4 Pcolor1 = tex2D(ProvinceColorMap, Input.uv2 + ( 1,-1) * ( 1/ MAP_SIZE_X, 1 /MAP_SIZE_Y));
+				float4 Pcolor2 = tex2D(ProvinceColorMap, Input.uv2 + ( -1,-1) * ( 1/ MAP_SIZE_X, 1 /MAP_SIZE_Y));
+				float4 Pcolor3 = tex2D(ProvinceColorMap, Input.uv2 + ( -1,1) * ( 1/ MAP_SIZE_X, 1 /MAP_SIZE_Y));
+
+				float4 A = Pcolor0 + Pcolor1 + Pcolor2 + Pcolor3;
+				A /= 4;
+
+
+				float l = distance( A, Pcolor);
+				
+				clip(l- 0.1);
+
+				return l;
+			}
+
 			ENDCG
 		}
 	}

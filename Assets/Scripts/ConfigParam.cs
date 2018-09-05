@@ -39,4 +39,6 @@ public static class ConfigParam{
 
     public static int Water_Height = 19;
 
+    public static int MAXProvinceCount = 4393;
+
 }
